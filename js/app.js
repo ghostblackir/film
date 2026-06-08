@@ -95,7 +95,7 @@ function renderPaginationControls() {
     paginationBox.appendChild(nextBtn);
 }
 
-// رندر کارت‌های درون گرید (همراه با Lazy Loading)
+// تابع رندر گرید فیلم‌ها در فایل js/app.js (نسخه فوق پیشرفته و هوشمند)
 function renderMoviesGrid(moviesList, gridId) {
     const grid = document.getElementById(gridId);
     if (!grid) return;
@@ -108,10 +108,22 @@ function renderMoviesGrid(moviesList, gridId) {
 
     moviesList.forEach(movie => {
         const card = document.createElement('a');
-        card.href = `movie.html?id=${movie.id}`;
-        card.className = 'movie-card';
+        
+        // شرط جادویی: اگر فیلم VIP بود، کاربر هدایت می‌شود به صفحه ثبت‌نام/وی‌آی‌پی
+        if (movie.access === 'vip') {
+            card.href = 'vip.html';
+            card.className = 'movie-card vip-locked-card'; // کلاس مخصوص برای استایل سفارشی
+        } else {
+            card.href = `movie.html?id=${movie.id}`;
+            card.className = 'movie-card';
+        }
+        
+        // اگر فیلم VIP بود، تگ بَجِ تاج طلایی به بالای کاور تزریق می‌شود
+        const vipBadgeHTML = movie.access === 'vip' ? `<div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>` : '';
+
         card.innerHTML = `
             <div class="card-img-wrapper">
+                ${vipBadgeHTML}
                 <img data-src="${movie.thumbnail}" alt="${movie.title}" class="lazy-img">
                 <span class="card-duration">${movie.duration}</span>
             </div>
@@ -119,6 +131,7 @@ function renderMoviesGrid(moviesList, gridId) {
                 <h4 class="card-title">${movie.title}</h4>
                 <div class="card-meta">
                     <span><i class="bi bi-eye-fill" style="color:var(--purple-primary); margin-left:4px;"></i>${movie.views || 0} بازدید</span>
+                    ${movie.access === 'vip' ? '<span style="color:#ffd700; font-size:0.8rem; font-weight:bold; margin-right:auto;"><i class="bi bi-lock-fill"></i> ویژه</span>' : ''}
                 </div>
             </div>
         `;
