@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمایش فیلم - GHOST MOVIES</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <a href="index.html" class="logo">GHOST <span>MOVIES</span></a>
+            <a href="index.html" class="back-link">بازگشت به خانه ←</a>
+        </div>
+    </header>
+
+    <main class="container movie-detail-container">
+        <div id="movieLoading" class="skeleton-player"></div>
+        
+        <div id="movieContent" class="hidden">
+            <div class="player-wrapper">
+                <video id="ghostPlayer" controls controlsList="nodownload" poster="">
+                    <source id="videoSource" src="" type="video/mp4">
+                    مرورگر شما از پخش ویدئو پشتیبانی نمی‌کند.
+                </video>
+            </div>
+
+            <div class="movie-meta-box">
+                <div class="movie-header-flex">
+                    <h1 id="movieTitle" class="movie-detail-title">عنوان فیلم</h1>
+                    
+                    <div class="movie-actions">
+                        <a id="downloadBtn" href="#" download class="btn-action btn-download" target="_blank">
+                            <i class="bi bi-cloud-arrow-down-fill"></i> دانلود فیلم
+                        </a>
+                        
+                        <div class="like-dislike-bundle">
+                            <button id="likeBtn" class="btn-bundle-like">
+                                <i class="bi bi-hand-thumbs-up-fill"></i> <span id="likeCount">۰</span>
+                            </button>
+                            <div class="bundle-divider"></div>
+                            <button id="dislikeBtn" class="btn-bundle-dislike">
+                                <i class="bi bi-hand-thumbs-down-fill"></i> <span id="dislikeCount">۰</span>
+                            </button>
+                        </div>
+                    </div>
+                
+                <div class="movie-stats">
+                    <span id="movieViews">👁️ ۰ بازدید</span>
+                    <span id="movieDuration">🕒 ۰۰:۰۰</span>
+                </div>
+
+                <div class="movie-tags" id="movieTags">
+                    </div>
+
+                <p id="movieDescription" class="movie-detail-desc">توضیحات فیلم...</p>
+
+                <hr class="section-divider">
+
+                <div class="comments-section">
+                    <h3> دیدگاه‌های کاربران (<span id="commentsCount">۰</span>)</h3>
+                    
+                    <form id="commentForm" class="comment-form">
+                        <input type="text" id="commenterName" placeholder="نام شما..." required>
+                        <textarea id="commentText" rows="3" placeholder="نظر خود را درباره این فیلم بنویسید..." required></textarea>
+                        <button type="submit" class="btn-submit-comment">ارسال دیدگاه</button>
+                    </form>
+
+                    <div id="commentsList" class="comments-list">
+                        </div>
+                </div>
+            </div>
+
+        <section class="movie-section similar-section">
+            <h2 class="section-title">فیلم‌های مشابه</h2>
+            <div class="movies-grid" id="similarMoviesGrid">
+                </div>
+        </section>
+    </main>
+
+    <script type="module" src="js/movie.js"></script>
+</body>
+</html>

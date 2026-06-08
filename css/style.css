@@ -1,0 +1,750 @@
+/* ---- Reset & Variables ---- */
+:root {
+    --bg-main: #0b0b0f;
+    --bg-card: #151520;
+    --purple-primary: #8b5cf6;
+    --purple-secondary: #6d28d9;
+    --text-color: #ffffff;
+    --text-muted: #a0aec0;
+    --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family);
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding-bottom: 40px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.hidden { display: none !important; }
+
+/* ---- Header ---- */
+.main-header {
+    position: sticky;
+    top: 0;
+    background-color: rgba(11, 11, 15, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--text-color);
+    text-decoration: none;
+    letter-spacing: 1px;
+}
+
+.logo span {
+    color: var(--purple-primary);
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 30px;
+    padding: 5px 15px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.search-box input {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    padding: 8px;
+    width: 100%;
+    outline: none;
+}
+
+.search-box button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+.back-link {
+    color: var(--purple-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* ---- Hero Banner ---- */
+.hero-banner {
+    background: linear-gradient(180deg, rgba(139, 92, 246, 0.15) 0%, rgba(11, 11, 15, 1) 100%),
+    url('https://cdni.pornpics.com/460/5/222/62402203/62402203_014_b10a.jpg') center/cover no-repeat;
+
+    height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.hero-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.7);
+}
+
+.hero-content p {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+/* ---- Section Styles & Tags Slider ---- */
+.movie-section {
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+    border-right: 4px solid var(--purple-primary);
+    padding-right: 10px;
+}
+
+.tags-section {
+    margin: 25px 0;
+}
+
+.tags-slider {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 5px 0;
+    scrollbar-width: none; /* Firefox */
+}
+
+.tags-slider::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.tag-badge {
+    background: var(--bg-card);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
+}
+
+.tag-badge.active, .tag-badge:hover {
+    background: var(--purple-primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+/* ---- Movies Grid & Cards ---- */
+.movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 20px;
+}
+
+.movie-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    color: white;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    position: relative;
+}
+
+.movie-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.15);
+}
+
+.card-img-wrapper {
+    position: relative;
+    aspect-ratio: 2/3;
+    background: #1a1a26;
+    overflow: hidden;
+}
+
+.card-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.card-img-wrapper img.loaded {
+    opacity: 1;
+}
+
+.card-duration {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+}
+
+.card-info {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.card-title {
+    font-size: 0.95rem;
+    font-weight: bold;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: auto;
+}
+
+/* ---- Skeletons (Loading Effect) ---- */
+.skeleton-card {
+    background: linear-gradient(90deg, #151520 25%, #1e1e2f 50%, #151520 75%);
+    background-size: 200% 100%;
+    animation: loadingAnimation 1.5s infinite;
+    aspect-ratio: 2/3.5;
+    border-radius: 12px;
+}
+
+.skeleton-player {
+    background: linear-gradient(90deg, #151520 25%, #1e1e2f 50%, #151520 75%);
+    background-size: 200% 100%;
+    animation: loadingAnimation 1.5s infinite;
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+@keyframes loadingAnimation {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ---- Video Player & Detail Page ---- */
+.movie-detail-container {
+    margin-top: 30px;
+}
+
+.player-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+#ghostPlayer {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.movie-meta-box {
+    background: var(--bg-card);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.movie-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.movie-detail-title {
+    font-size: 1.6rem;
+}
+
+.btn-share {
+    background: var(--purple-primary);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.btn-share:hover { background: var(--purple-secondary); }
+
+.movie-stats {
+    display: flex;
+    gap: 15px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 10px 0 15px 0;
+}
+
+.movie-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.movie-tags .mini-tag {
+    font-size: 0.75rem;
+    color: var(--purple-primary);
+    background: rgba(139, 92, 246, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.movie-detail-desc {
+    color: #cbd5e1;
+    font-size: 1rem;
+    text-align: justify;
+}
+
+/* ---- Admin Form Styles ---- */
+.admin-container {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.form-wrapper {
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+}
+
+.form-group input, .form-group textarea {
+    width: 100%;
+    background: var(--bg-main);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 12px;
+    border-radius: 8px;
+    color: white;
+    outline: none;
+}
+
+.form-group input:focus, .form-group textarea:focus {
+    border-color: var(--purple-primary);
+}
+
+.btn-submit {
+    width: 100%;
+    background: var(--purple-primary);
+    color: white;
+    border: none;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-submit:hover { background: var(--purple-secondary); }
+
+.form-message {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 6px;
+    display: none;
+    text-align: center;
+}
+
+.form-message.success { background: rgba(16, 185, 129, 0.2); color: #10b981; display: block; }
+.form-message.error { background: rgba(239, 68, 68, 0.2); color: #ef4444; display: block; }
+
+/* ---- Utility & Top Button ---- */
+#scrollTopBtn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--purple-primary);
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* ---- Responsive Design ---- */
+@media (max-width: 768px) {
+    .header-container { flex-direction: column; }
+    .search-box { max-width: 100%; order: 3; }
+    .hero-banner { height: 250px; }
+    .hero-content h1 { font-size: 1.8rem; }
+    .movies-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; }
+    .movie-detail-title { font-size: 1.2rem; }
+}
+
+/* ---- Admin Manage & Delete Styles ---- */
+.admin-movies-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-movie-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.admin-movie-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-movie-thumb {
+    width: 50px;
+    height: 65px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.admin-movie-title {
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+.btn-delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+}
+
+.btn-delete:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* ---- Actions & Comments Styles ---- */
+.movie-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    border: none;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-download { background: #10b981; } /* سبز زمردی برای دانلود */
+.btn-download:hover { background: #059669; }
+
+.btn-like { background: rgba(255, 255, 255, 0.1); }
+.btn-like:hover { background: rgba(139, 92, 246, 0.2); color: var(--purple-primary); }
+.btn-like.active { background: var(--purple-primary); color: white; }
+
+.btn-dislike { background: rgba(255, 255, 255, 0.1); }
+.btn-dislike:hover { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.btn-dislike.active { background: #ef4444; color: white; }
+
+.section-divider {
+    border: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 25px 0;
+}
+
+/* Comments Design */
+.comments-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.comment-form input, .comment-form textarea {
+    background: var(--bg-main);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px;
+    border-radius: 8px;
+    color: white;
+    outline: none;
+    width: 100%;
+}
+
+.comment-form input:focus, .comment-form textarea:focus {
+    border-color: var(--purple-primary);
+}
+
+.btn-submit-comment {
+    align-self: flex-end;
+    background: var(--purple-primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.btn-submit-comment:hover { background: var(--purple-secondary); }
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.comment-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.comment-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.comment-user {
+    font-weight: bold;
+    color: #e2e8f0;
+}
+
+.comment-text {
+    font-size: 0.9rem;
+    color: #cbd5e1;
+    text-align: justify;
+}
+
+/* ==========================================================================
+   بخش دکمه‌های اکشن مدرن (طراحی الهام گرفته از یوتیوب و نتفلیکس)
+   ========================================================================== */
+
+/* باکس اصلی دکمه‌ها در هدر فیلم */
+.movie-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap; /* در موبایل‌های خیلی کوچک در دو خط قرار می‌گیرد اما ساختار دکمه‌ها خراب نمی‌شود */
+    margin-bottom: 15px;
+}
+
+.movie-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap; /* جلوگیری از شکستن دکمه‌ها به خطوط مختلف */
+}
+
+/* دکمه‌های پایه */
+.btn-action {
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 24px; /* کاملاً گرد و کپسولی */
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+/* دکمه دانلود با تم سبز نئون جذاب */
+.btn-download {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+.btn-download:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* باندل دوقلوی لایک و دیس‌لایک */
+.like-dislike-bundle {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-bundle-like, .btn-bundle-dislike {
+    background: none;
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+/* خط جداکننده باریک وسط باندل */
+.bundle-divider {
+    width: 1px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* افکت‌ها و فعال شدن لایک */
+.btn-bundle-like:hover {
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--purple-primary);
+}
+.btn-bundle-like.active {
+    background: var(--purple-primary);
+    color: white;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* افکت‌ها و فعال شدن دیس‌لایک */
+.btn-bundle-dislike:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+.btn-bundle-dislike.active {
+    background: #ef4444;
+    color: white;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* انیمیشن کلیک روی دکمه‌ها */
+.btn-action:active, .like-dislike-bundle button:active {
+    transform: scale(0.95);
+}
+
+/* ریسپانسیو کاملاً هماهنگ با موبایل */
+@media (max-width: 600px) {
+    .movie-header-flex {
+        flex-direction: column;
+        align-items: flex-start; /* در موبایل عنوان بالا و دکمه‌ها پایین قرار می‌گیرند */
+        gap: 15px;
+    }
+    
+    .movie-actions {
+        width: 100%;
+        justify-content: bnd; /* دکمه‌ها کل عرض موبایل را به زیبایی کاور می‌کنند */
+    }
+    
+    .btn-action, .like-dislike-bundle {
+        flex-grow: 1; /* تقسیم فضای مساوی و فیت شدن دکمه‌ها در نمایشگر گوشی */
+        justify-content: center;
+    }
+}

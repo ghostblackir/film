@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت - GHOST MOVIES</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+
+    <header class="main-header">
+        <div class="header-container">
+            <a href="index.html" class="logo">GHOST <span>MANAGEMENT</span></a>
+            <a href="index.html" class="back-link">مشاهده سایت ←</a>
+        </div>
+    </header>
+
+    <main class="container admin-container">
+        <div class="form-wrapper">
+            <h2>افزودن فیلم جدید به پلتفرم</h2>
+            <p style="color: #a0aec0; margin-bottom: 20px; font-size: 0.9rem;">اطلاعات فیلم را به دقت وارد کنید تا
+                بلافاصله روی سایت اعمال شود.</p>
+
+            <form id="addMovieForm">
+                <div class="form-group">
+                    <label for="title">عنوان فیلم</label>
+                    <input type="text" id="title" required placeholder="مثال: بتمن ۲۰۲۲">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">توضیحات فیلم</label>
+                    <textarea id="description" rows="4" required placeholder="خلاصه‌ای از داستان فیلم..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="videoUrl">لینک مستقیم فایل ویدئو (MP4)</label>
+                    <input type="url" id="videoUrl" required placeholder="https://example.com/movie.mp4">
+                </div>
+
+                <div class="form-group">
+                    <label for="thumbnailUrl">لینک کاور فیلم (Image)</label>
+                    <input type="url" id="thumbnailUrl" required placeholder="https://example.com/cover.jpg">
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">مدت زمان</label>
+                    <input type="text" id="duration" required placeholder="مثال: 2:15:00 یا 45 دقیقه">
+                </div>
+
+                <div class="form-group">
+                    <label for="tags">هشتگ‌ها (با کاما یا ویرگول جدا کنید)</label>
+                    <input type="text" id="tags" placeholder="مثال: اکشن, درام, تخیلی">
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-submit">ثبت و انتشار فیلم</button>
+            </form>
+            <div id="formMessage" class="form-message"></div>
+        </div>
+    </main>
+
+    <section class="admin-manage-section" style="margin-top: 40px; width: 100%; max-width: 600px;">
+        <h3 class="section-title" style="margin-bottom: 20px;">مدیریت و حذف فیلم‌ها</h3>
+        <div id="adminMoviesList" class="admin-movies-list">
+            <p style="color: var(--text-muted); text-align: center;">در حال بارگذاری لیست فیلم‌ها...</p>
+        </div>
+    </section>
+    
+    <script type="module" src="js/admin.js"></script>
+</body>
+
+</html>
