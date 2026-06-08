@@ -967,3 +967,39 @@ body {
     background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; /* آبی کاربنی در حالت آپدیت */
     box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4) !important;
 }
+
+/* ---- Cyberpunk Golden VIP Badge on Covers ---- */
+.card-img-wrapper {
+    position: relative; /* برای اینکه بج بتونه نسبت به کاور فیکس بشه */
+}
+
+.vip-badge-tag {
+    position: absolute;
+    top: 10px;
+    left: 10px; /* قرارگیری در بالا سمت چپ کاور */
+    background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
+    color: #000000;
+    font-size: 0.72rem;
+    font-weight: 900;
+    padding: 4px 10px;
+    border-radius: 6px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.5px;
+    animation: vipPulse 2s infinite alternate;
+}
+
+/* انیمیشن پالس ملایم نئونی برای تاج */
+@keyframes vipPulse {
+    0% { box-shadow: 0 4px 10px rgba(255, 215, 0, 0.4); }
+    100% { box-shadow: 0 4px 20px rgba(255, 215, 0, 0.8); transform: scale(1.02); }
+}
+
+/* افکت کارت‌های قفل شده VIP در صفحه اصلی */
+.vip-locked-card:hover .card-img-wrapper img {
+    filter: brightness(0.4) blur(1px); /* تاریک شدن کاور موقع هاور برای حس قفل بودن */
+}
