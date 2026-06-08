@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GHOST VIP 👑 - بخش ویژه اعضا</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="cyber-vip-body">
+
+    <header class="main-header vip-header">
+        <div class="header-container">
+            <a href="index.html" class="logo vip-logo">GHOST <span>VIP <i class="bi bi-crown-fill"></i></span></a>
+            <div class="search-box vip-search-box">
+                <input type="text" id="searchInput" placeholder="جستجوی پیشرفته در آرشیو طلایی...">
+                <button id="searchBtn">🔍</button>
+            </div>
+            <a href="index.html" class="back-link-vip">بازگشت به خانه ←</a>
+        </div>
+    </header>
+
+    <section class="hero-banner vip-hero-banner">
+        <div class="hero-content vip-hero-content">
+            <div class="glitch-wrapper">
+                <h1 class="vip-glitch-text" data-text="دسترسی نامحدود به آرشیو VIP">دسترسی نامحدود به آرشیو VIP</h1>
+            </div>
+            <p>خاص‌ترین و جدیدترین فیلم‌های جهان، بدون سانسور و با بالاترین کیفیت اختصاصی اعضا</p>
+            <div class="vip-status-bar">
+                <span><i class="bi bi-shield-lock-fill"></i> پروتکل امنیتی سایبر</span>
+                <span><i class="bi bi-speedometer2"></i> سرورهای مگا سرعت</span>
+            </div>
+        </div>
+    </section>
+
+    <main class="container">
+        <section class="movie-section">
+            <h2 class="section-title vip-section-title"><i class="bi bi-lightning-charge-fill"></i> محتوای منحصربه‌فرد VIP</h2>
+            <div class="movies-grid" id="vipMoviesGrid">
+                <div class="skeleton-card vip-skeleton"></div>
+                <div class="skeleton-card vip-skeleton"></div>
+                <div class="skeleton-card vip-skeleton"></div>
+                <div class="skeleton-card vip-skeleton"></div>
+            </div>
+
+            <div class="pagination-container" id="paginationBox"></div>
+        </section>
+    </main>
+
+    <button id="scrollTopBtn" class="vip-scroll-btn" title="بازگشت به بالا">↑</button>
+
+    <script type="module">
+        import { db, collection, getDocs, query, orderBy } from './js/firebase.js';
+
+        const ITEMS_PER_PAGE = 8;
+        let currentPage = 1;
+        let allVipMovies = [];
+        let filteredVipMovies = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initVipPage();
+        });
+
+        async function initVipPage() {
+            setupScrollTop();
+            await fetchVipMovies();
+            setupVipSearch();
+        }
+
+        // واکشی فیلم‌ها و فیلتر کردن موارد VIP
+        async function fetchVipMovies() {
+            const grid = document.getElementById('vipMoviesGrid');
+            try {
+                const q = query(collection(db, 'movies'), orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+                const fetchedMovies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // فیلتر هوشمند: فیلم‌هایی که هشتگ VIP یا وی‌ای‌پی دارند
+                allVipMovies = fetchedMovies.filter(movie => 
+                    movie.tags && (
+                        movie.tags.some(tag => tag.toLowerCase() === 'vip') || 
+                        movie.tags.some(tag => tag === 'وی آی پی') ||
+                        movie.tags.some(tag => tag === 'وی‌ای‌پی')
+                    )
+                );
+
+                filteredVipMovies = [...allVipMovies];
+                renderVipGrid();
+
+            } catch (error) {
+                console.error("خطا در لود فیلم‌های وی‌آی‌پی: ", error);
+                grid.innerHTML = '<p style="color: #ffd700; text-align:center; width:100%;">خطا در برقراری ارتباط با سرور فایربیس.</p>';
+            }
+        }
+
+        // رندر کردن گرید فیلم‌ها با نشان متمایز تاج طلایی در بالا چپ کاور
+        function renderVipGrid() {
+            const grid = document.getElementById('vipMoviesGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            if (filteredVipMovies.length === 0) {
+                grid.innerHTML = `<p style="color: #a0aec0; grid-column: 1/-1; text-align: center; padding: 40px;">هیچ فیلم ویژه‌ای یافت نشد.</p>`;
+                return;
+            }
+
+            const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+            const endIndex = startIndex + ITEMS_PER_PAGE;
+            const displayList = filteredVipMovies.slice(startIndex, endIndex);
+
+            displayList.forEach(movie => {
+                const card = document.createElement('a');
+                card.href = `movie.html?id=${movie.id}`;
+                card.className = 'movie-card vip-movie-card';
+                card.innerHTML = `
+                    <div class="card-img-wrapper">
+                        <div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>
+                        <img src="${movie.thumbnail}" alt="${movie.title}" loading="lazy">
+                        <span class="card-duration">${movie.duration}</span>
+                    </div>
+                    <div class="card-info vip-card-info">
+                        <h4 class="card-title">${movie.title}</h4>
+                        <div class="card-meta">
+                            <span style="color: #ffd700;"><i class="bi bi-eye-fill"></i> ${movie.views || 0} بازدید</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            renderPagination();
+        }
+
+        // سیستم صفحه‌بندی اختصاصی
+        function renderPagination() {
+            const box = document.getElementById('paginationBox');
+            if (!box) return;
+            box.innerHTML = '';
+
+            const totalPages = Math.ceil(filteredVipMovies.length / ITEMS_PER_PAGE);
+            if (totalPages <= 1) return;
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.className = `page-btn ${currentPage === i ? 'active' : ''}`;
+                btn.style = currentPage === i ? 'background:#ffd700; color:#000; border-color:#ffd700;' : '';
+                btn.textContent = i;
+                btn.addEventListener('click', () => {
+                    currentPage = i;
+                    renderVipGrid();
+                    window.scrollTo({top: 350, behavior: 'smooth'});
+                });
+                box.appendChild(btn);
+            }
+        }
+
+        // جستجوی زنده در بخش VIP
+        function setupVipSearch() {
+            const input = document.getElementById('searchInput');
+            const btn = document.getElementById('searchBtn');
+
+            const search = () => {
+                const txt = input.value.toLowerCase().trim();
+                currentPage = 1;
+
+                if (txt === '') {
+                    filteredVipMovies = [...allVipMovies];
+                } else {
+                    filteredVipMovies = allVipMovies.filter(m => 
+                        m.title?.toLowerCase().includes(txt) || 
+                        m.description?.toLowerCase().includes(txt)
+                    );
+                }
+                renderVipGrid();
+            };
+
+            btn.addEventListener('click', search);
+            input.addEventListener('keyup', (e) => { if (e.key === 'Enter') search(); });
+        }
+
+        function setupScrollTop() {
+            const btn = document.getElementById('scrollTopBtn');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 300) btn.style.display = 'block';
+                else btn.style.display = 'none';
+            });
+            btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        }
+    </script>
+</body>
+</html>

@@ -748,3 +748,222 @@ body {
         justify-content: center;
     }
 }
+
+/* ---- Advanced Tags Styling ---- */
+.tags-container-wrapper {
+    position: relative;
+    background: rgba(21, 21, 32, 0.7);
+    padding: 12px;
+    border-radius: 16px;
+    border: 1px solid rgba(139, 92, 246, 0.15);
+    backdrop-filter: blur(5px);
+}
+
+.tag-badge {
+    background: #0b0b0f;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: #cbd5e1;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tag-badge:hover {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--purple-primary);
+    border-color: var(--purple-primary);
+    transform: scale(1.03);
+}
+
+.tag-badge.active {
+    background: linear-gradient(135deg, var(--purple-primary) 0%, var(--purple-secondary) 100%);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+}
+
+/* ---- Professional Pagination ---- */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 35px;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    background: var(--bg-card);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+    border-color: var(--purple-primary);
+    color: var(--purple-primary);
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.page-btn.active {
+    background: var(--purple-primary);
+    color: white;
+    border-color: var(--purple-primary);
+    box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+}
+
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ---- Floating Golden VIP Button ---- */
+#vipFloatingBtn {
+    position: fixed;
+    bottom: 80px; /* قرارگیری دقیق بالای دکمه بازگشت به بالا */
+    right: 20px;
+    background: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+    color: #0b0b0f;
+    text-decoration: none;
+    font-weight: 900;
+    font-size: 0.85rem;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#vipFloatingBtn i {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+#vipFloatingBtn span {
+    font-size: 0.65rem;
+    margin-top: -2px;
+}
+
+#vipFloatingBtn:hover {
+    transform: translateY(-5px) scale(1.08);
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+}
+
+/* ==========================================================================
+   تم سایبرپانک لوکس طلایی و مشکی (GHOST VIP PRO)
+   ========================================================================== */
+
+/* استایل کلی بادی بخش VIP */
+.cyber-vip-body {
+    background-color: #050508 !important;
+    background-image: 
+        radial-gradient(rgba(255, 215, 0, 0.03) 1px, transparent 0),
+        radial-gradient(rgba(255, 215, 0, 0.02) 2px, transparent 0);
+    background-size: 24px 24px;
+    background-position: 0 0, 12px 12px;
+}
+
+/* هدر لوکس VIP */
+.vip-header {
+    border-bottom: 2px solid #ffd700 !important;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15);
+    background-color: rgba(5, 5, 8, 0.96) !important;
+}
+
+.vip-logo span {
+    color: #ffd700 !important;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.6), 0 0 20px rgba(255, 215, 0, 0.3);
+    font-weight: 900;
+}
+
+.vip-search-box {
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+}
+.vip-search-box input::placeholder { color: #a0aec0; }
+.vip-search-box button { color: #ffd700; }
+
+.back-link-vip {
+    color: #ffd700;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: bold;
+    padding: 6px 14px;
+    border: 1px solid #ffd700;
+    border-radius: 6px;
+    background: rgba(255, 215, 0, 0.05);
+    transition: all 0.3s;
+}
+
+/* ---- Admin Select Box Custom ---- */
+.admin-select {
+    width: 100%;
+    background: var(--bg-main);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.95rem;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.admin-select:focus {
+    border-color: var(--purple-primary);
+}
+
+.admin-select option {
+    background: #0b0b0f;
+    color: white;
+    padding: 10px;
+}
+
+/* ---- Admin Edit Button Styles ---- */
+.admin-movie-actions-flex {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-edit {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--purple-primary);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+}
+
+.btn-edit:hover {
+    background: var(--purple-primary);
+    color: white;
+}
+
+/* تغییر رنگ دکمه ثبت فرم در حالت ویرایش برای متمایز شدن */
+.btn-submit-admin.updating-mode {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important; /* آبی کاربنی در حالت آپدیت */
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4) !important;
+}
