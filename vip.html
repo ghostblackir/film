@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body class="cyber-vip-body">
 
     <header class="main-header vip-header">
@@ -35,7 +37,8 @@
 
     <main class="container">
         <section class="movie-section">
-            <h2 class="section-title vip-section-title"><i class="bi bi-lightning-charge-fill"></i> محتوای منحصربه‌فرد VIP</h2>
+            <h2 class="section-title vip-section-title"><i class="bi bi-lightning-charge-fill"></i> محتوای منحصربه‌فرد
+                VIP</h2>
             <div class="movies-grid" id="vipMoviesGrid">
                 <div class="skeleton-card vip-skeleton"></div>
                 <div class="skeleton-card vip-skeleton"></div>
@@ -67,7 +70,6 @@
             setupVipSearch();
         }
 
-        // واکشی فیلم‌ها و فیلتر کردن موارد VIP
         async function fetchVipMovies() {
             const grid = document.getElementById('vipMoviesGrid');
             try {
@@ -75,14 +77,8 @@
                 const snapshot = await getDocs(q);
                 const fetchedMovies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // فیلتر هوشمند: فیلم‌هایی که هشتگ VIP یا وی‌ای‌پی دارند
-                allVipMovies = fetchedMovies.filter(movie => 
-                    movie.tags && (
-                        movie.tags.some(tag => tag.toLowerCase() === 'vip') || 
-                        movie.tags.some(tag => tag === 'وی آی پی') ||
-                        movie.tags.some(tag => tag === 'وی‌ای‌پی')
-                    )
-                );
+                // فیلتر فیلم‌های دارای دسترسی vip
+                allVipMovies = fetchedMovies.filter(movie => movie.access === 'vip');
 
                 filteredVipMovies = [...allVipMovies];
                 renderVipGrid();
@@ -93,7 +89,6 @@
             }
         }
 
-        // رندر کردن گرید فیلم‌ها با نشان متمایز تاج طلایی در بالا چپ کاور
         function renderVipGrid() {
             const grid = document.getElementById('vipMoviesGrid');
             if (!grid) return;
@@ -112,26 +107,47 @@
                 const card = document.createElement('a');
                 card.href = `movie.html?id=${movie.id}`;
                 card.className = 'movie-card vip-movie-card';
+
+                // اصلاح تگ ایموجی و کلاس تصویر برای لود شدن تضمینی کاور
                 card.innerHTML = `
-                    <div class="card-img-wrapper">
-                        <div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>
-                        <img src="${movie.thumbnail}" alt="${movie.title}" loading="lazy">
-                        <span class="card-duration">${movie.duration}</span>
-                    </div>
-                    <div class="card-info vip-card-info">
-                        <h4 class="card-title">${movie.title}</h4>
-                        <div class="card-meta">
-                            <span style="color: #ffd700;"><i class="bi bi-eye-fill"></i> ${movie.views || 0} بازدید</span>
-                        </div>
-                    </div>
-                `;
+            <div class="card-img-wrapper">
+                <div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>
+                <img data-src="${movie.thumbnail}" alt="${movie.title}" class="lazy-img">
+                <span class="card-duration">${movie.duration}</span>
+            </div>
+            <div class="card-info vip-card-info">
+                <h4 class="card-title">${movie.title}</h4>
+                <div class="card-meta">
+                    <span style="color: #ffd700;"><i class="bi bi-eye-fill"></i> ${movie.views || 0} بازدید</span>
+                </div>
+            </div>
+        `;
                 grid.appendChild(card);
             });
 
+            handleVipLazyLoading(); // اجرای لِیزی لودینگ در صفحه VIP
             renderPagination();
         }
 
-        // سیستم صفحه‌بندی اختصاصی
+        function handleVipLazyLoading() {
+            const lazyImages = document.querySelectorAll('.lazy-img');
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.src = img.getAttribute('data-src');
+                            img.classList.add('loaded');
+                            observer.unobserve(img);
+                        }
+                    });
+                });
+                lazyImages.forEach(img => observer.observe(img));
+            } else {
+                lazyImages.forEach(img => { img.src = img.getAttribute('data-src'); img.classList.add('loaded'); });
+            }
+        }
+
         function renderPagination() {
             const box = document.getElementById('paginationBox');
             if (!box) return;
@@ -143,21 +159,23 @@
             for (let i = 1; i <= totalPages; i++) {
                 const btn = document.createElement('button');
                 btn.className = `page-btn ${currentPage === i ? 'active' : ''}`;
-                btn.style = currentPage === i ? 'background:#ffd700; color:#000; border-color:#ffd700;' : '';
+                if (currentPage === i) {
+                    btn.style = 'background:#ffd700; color:#000; border-color:#ffd700;';
+                }
                 btn.textContent = i;
                 btn.addEventListener('click', () => {
                     currentPage = i;
                     renderVipGrid();
-                    window.scrollTo({top: 350, behavior: 'smooth'});
+                    window.scrollTo({ top: 350, behavior: 'smooth' });
                 });
                 box.appendChild(btn);
             }
         }
 
-        // جستجوی زنده در بخش VIP
         function setupVipSearch() {
             const input = document.getElementById('searchInput');
             const btn = document.getElementById('searchBtn');
+            if (!input || !btn) return;
 
             const search = () => {
                 const txt = input.value.toLowerCase().trim();
@@ -166,8 +184,8 @@
                 if (txt === '') {
                     filteredVipMovies = [...allVipMovies];
                 } else {
-                    filteredVipMovies = allVipMovies.filter(m => 
-                        m.title?.toLowerCase().includes(txt) || 
+                    filteredVipMovies = allVipMovies.filter(m =>
+                        m.title?.toLowerCase().includes(txt) ||
                         m.description?.toLowerCase().includes(txt)
                     );
                 }
@@ -180,6 +198,7 @@
 
         function setupScrollTop() {
             const btn = document.getElementById('scrollTopBtn');
+            if (!btn) return;
             window.addEventListener('scroll', () => {
                 if (window.scrollY > 300) btn.style.display = 'block';
                 else btn.style.display = 'none';
@@ -188,4 +207,5 @@
         }
     </script>
 </body>
+
 </html>
