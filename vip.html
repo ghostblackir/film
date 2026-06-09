@@ -15,8 +15,8 @@
         <div class="header-container">
             <a href="index.html" class="logo vip-logo">GHOST <span>VIP <i class="bi bi-crown-fill"></i></span></a>
             <div class="search-box vip-search-box">
-                <input type="text" id="searchInput" placeholder="جستجوی پیشرفته در آرشیو طلایی...">
-                <button id="searchBtn">🔍</button>
+                <input type="text" id="searchInput" placeholder="جستجوی فیلم، توضیحات یا هشتگ...">
+                <button id="searchBtn"><i class="bi bi-search"></i></button>
             </div>
             <a href="index.html" class="back-link-vip">بازگشت به خانه ←</a>
         </div>
@@ -53,7 +53,13 @@
     <button id="scrollTopBtn" class="vip-scroll-btn" title="بازگشت به بالا">↑</button>
 
     <script type="module">
-        import { db, collection, getDocs, query, orderBy } from './js/firebase.js';
+        import {
+            db,
+            collection,
+            query,
+            orderBy,
+            onSnapshot
+        } from './js/firebase.js';
 
         const ITEMS_PER_PAGE = 8;
         let currentPage = 1;
@@ -64,29 +70,43 @@
             initVipPage();
         });
 
-        async function initVipPage() {
+        function initVipPage() {
             setupScrollTop();
-            await fetchVipMovies();
+            fetchVipMoviesLive(); // صدا زدن موتور زنده فایربیس
             setupVipSearch();
         }
 
-        async function fetchVipMovies() {
-            const grid = document.getElementById('vipMoviesGrid');
-            try {
-                const q = query(collection(db, 'movies'), orderBy('createdAt', 'desc'));
-                const snapshot = await getDocs(q);
+        // شنود آنلاین دیتابیس مخصوص پیج VIP
+        function fetchVipMoviesLive() {
+            const q = query(collection(db, 'movies'), orderBy('createdAt', 'desc'));
+
+            // فعال کردن آپدیت همزمان کلاینت
+            onSnapshot(q, (snapshot) => {
                 const fetchedMovies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // فیلتر فیلم‌های دارای دسترسی vip
+                // فیلتر آنی فیلم‌های دارای دسترسی vip
                 allVipMovies = fetchedMovies.filter(movie => movie.access === 'vip');
 
-                filteredVipMovies = [...allVipMovies];
-                renderVipGrid();
+                // اعمال منطق سرچ روی لیست زنده ورودی
+                const searchInput = document.getElementById('searchInput');
+                const txt = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-            } catch (error) {
-                console.error("خطا در لود فیلم‌های وی‌آی‌پی: ", error);
-                grid.innerHTML = '<p style="color: #ffd700; text-align:center; width:100%;">خطا در برقراری ارتباط با سرور فایربیس.</p>';
-            }
+                if (txt === '') {
+                    filteredVipMovies = [...allVipMovies];
+                } else {
+                    filteredVipMovies = allVipMovies.filter(m =>
+                        m.title?.toLowerCase().includes(txt) ||
+                        m.description?.toLowerCase().includes(txt)
+                    );
+                }
+
+                // رندر آنی کارت‌ها
+                renderVipGrid();
+            }, (error) => {
+                console.error("خطا در لود زنده فیلم‌های وی‌آی‌پی: ", error);
+                const grid = document.getElementById('vipMoviesGrid');
+                if (grid) grid.innerHTML = '<p style="color: #ffd700; text-align:center; width:100%;">خطا در برقراری ارتباط زنده با سرور.</p>';
+            });
         }
 
         function renderVipGrid() {
@@ -108,24 +128,23 @@
                 card.href = `movie.html?id=${movie.id}`;
                 card.className = 'movie-card vip-movie-card';
 
-                // اصلاح تگ ایموجی و کلاس تصویر برای لود شدن تضمینی کاور
                 card.innerHTML = `
-            <div class="card-img-wrapper">
-                <div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>
-                <img data-src="${movie.thumbnail}" alt="${movie.title}" class="lazy-img">
-                <span class="card-duration">${movie.duration}</span>
-            </div>
-            <div class="card-info vip-card-info">
-                <h4 class="card-title">${movie.title}</h4>
-                <div class="card-meta">
-                    <span style="color: #ffd700;"><i class="bi bi-eye-fill"></i> ${movie.views || 0} بازدید</span>
-                </div>
-            </div>
-        `;
+                    <div class="card-img-wrapper">
+                        <div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>
+                        <img data-src="${movie.thumbnail}" alt="${movie.title}" class="lazy-img">
+                        <span class="card-duration">${movie.duration}</span>
+                    </div>
+                    <div class="card-info vip-card-info">
+                        <h4 class="card-title">${movie.title}</h4>
+                        <div class="card-meta">
+                            <span style="color: #ffd700;"><i class="bi bi-eye-fill"></i> ${movie.views || 0} بازدید</span>
+                        </div>
+                    </div>
+                `;
                 grid.appendChild(card);
             });
 
-            handleVipLazyLoading(); // اجرای لِیزی لودینگ در صفحه VIP
+            handleVipLazyLoading();
             renderPagination();
         }
 
