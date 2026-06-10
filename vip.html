@@ -13,12 +13,12 @@
 
     <header class="main-header vip-header">
         <div class="header-container">
+            <button id="menuToggleBtn" class="menu-toggle-btn"><i class="bi bi-list"></i></button>
             <a href="index.html" class="logo vip-logo">GHOST <span>VIP <i class="bi bi-crown-fill"></i></span></a>
             <div class="search-box vip-search-box">
                 <input type="text" id="searchInput" placeholder="جستجوی فیلم، توضیحات یا هشتگ...">
                 <button id="searchBtn"><i class="bi bi-search"></i></button>
             </div>
-            <a href="index.html" class="back-link-vip">بازگشت به خانه ←</a>
         </div>
     </header>
 
@@ -50,6 +50,24 @@
         </section>
     </main>
 
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar-menu" id="sidebarMenu">
+        <div class="sidebar-header">
+            <span class="sidebar-title">منوی دسترسی</span>
+            <button id="closeMenuBtn" class="close-menu-btn"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="index.html"><i class="bi bi-house-door"></i> خانه</a>
+            <a href="vip.html"><i class="bi bi-crown"></i> بخش VIP</a>
+            <a href="shop.html"><i class="bi bi-bag-check"></i> خرید سرویس</a>
+        </nav>
+
+        <div class="sidebar-footer" id="userProfileSection">
+            <div class="sidebar-loading">در حال بارگذاری وضعیت کاربری...</div>
+        </div>
+    </aside>
+    
     <button id="scrollTopBtn" class="vip-scroll-btn" title="بازگشت به بالا">↑</button>
 
     <script type="module">
@@ -225,6 +243,7 @@
             btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         }
     </script>
+    <script type="module" src="js/menu.js"></script>
 </body>
 
 </html>

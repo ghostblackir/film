@@ -33,63 +33,260 @@ body {
 .hidden { display: none !important; }
 
 /* ---- Header ---- */
-.main-header {
+/* ==========================================================================
+   Header & Navigation (چینش جدید قرینه)
+   ========================================================================== */
+
+   .main-header {
+    background-color: #0f111a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     position: sticky;
     top: 0;
-    background-color: rgba(11, 11, 15, 0.95);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
-    border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+    z-index: 100;
 }
 
+/* کانتینر اصلی هدر */
 .header-container {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between; /* پخش کردن المان‌ها در سه بخش راست، وسط و چپ */
     padding: 15px 20px;
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    flex-wrap: wrap;
-    gap: 15px;
+    position: relative;
 }
 
-.logo {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: var(--text-color);
-    text-decoration: none;
-    letter-spacing: 1px;
-}
-
-.logo span {
-    color: var(--purple-primary);
-}
-
-.search-box {
+/* ۱. دکمه منوی همبرگری سمت راست */
+.menu-toggle-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.8rem;
+    cursor: pointer;
+    order: 1; /* قرارگیری در اولین جایگاه سمت راست در حالت RTL */
     display: flex;
     align-items: center;
-    background: var(--bg-card);
+    transition: color 0.3s;
+}
+.menu-toggle-btn:hover { 
+    color: #ff3366; 
+}
+
+/* ۲. لوگو دقیقاً در وسط */
+.logo {
+    order: 2; /* قرارگیری در جایگاه دوم (وسط) */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); /* تکنیک عالی برای قفل کردن لوگو دقیقاً در مرکز هدر */
+    margin: 0;
+    z-index: 5;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+.logo span {
+    color: #8804b1;
+}
+
+/* ۳. باکس جستجو در سمت چپ */
+.search-box {
+    order: 3; /* قرارگیری در جایگاه سوم سمت چپ در حالت RTL */
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 30px;
-    padding: 5px 15px;
+    border-radius: 50px;
+    padding: 6px 15px;
+    max-width: 320px; /* کنترل پهنای سرچ باکس */
     width: 100%;
-    max-width: 400px;
+    transition: all 0.3s ease;
+}
+
+.search-box:focus-within {
+    border-color: #ff3366;
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .search-box input {
     background: none;
     border: none;
-    color: var(--text-color);
-    padding: 8px;
-    width: 100%;
+    color: #fff;
     outline: none;
+    width: 100%;
+    font-size: 0.9rem;
+    font-family: inherit;
 }
 
 .search-box button {
     background: none;
     border: none;
+    color: #a0aec0;
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1rem;
+    padding: 0 5px;
+}
+
+/* هدر مخصوص VIP */
+.vip-header .logo span { color: #ffd700; }
+.vip-header .search-box:focus-within { border-color: #ffd700; }
+
+/* ==========================================================================
+   Sidebar Menu Styles (منوی کشویی سمت راست)
+   ========================================================================== */
+
+/* لایه تاریک پشت منو */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* باکس اصلی منو سمت راست */
+.sidebar-menu {
+    position: fixed;
+    top: 0;
+    right: -300px; /* شروع در حالت بسته */
+    width: 300px;
+    height: 100%;
+    background: #0f111a;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+}
+.sidebar-menu.open {
+    right: 0; /* باز شدن */
+}
+
+/* هدر منو */
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.sidebar-title { color: #fff; font-weight: bold; font-size: 1.1rem; }
+.close-menu-btn { background: none; border: none; color: #a0aec0; font-size: 1.2rem; cursor: pointer; }
+.close-menu-btn:hover { color: #fff; }
+
+/* آیتم‌های منو */
+.sidebar-nav { padding: 20px 10px; flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    color: #cbd5e0;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.sidebar-nav a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    padding-right: 20px;
+}
+
+/* بخش کاربری در پایین منو */
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: #0a0c14;
+}
+
+/* دکمه ورود با گوگل */
+.btn-google-login {
+    width: 100%;
+    padding: 12px;
+    background: #ea4335;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: bold;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+.btn-google-login:hover { background: #d33426; }
+
+/* استایل کارت کاربری متصل شده */
+.user-profile-card { display: flex; flex-direction: column; gap: 10px; }
+.user-info-flex { display: flex; align-items: center; gap: 10px; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ff3366; }
+.user-avatar.vip-border { border-color: #ffd700 !important; }
+.user-name { color: #fff; font-size: 0.95rem; font-weight: 500; }
+.user-badge {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    width: fit-content;
+    font-weight: bold;
+}
+.badge-free { background: rgba(255, 255, 255, 0.1); color: #a0aec0; }
+.badge-vip { background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid #ffd700; }
+.btn-logout {
+    background: none;
+    border: none;
+    color: #e53e3e;
+    cursor: pointer;
+    text-align: right;
+    font-size: 0.85rem;
+    padding: 5px 0 0 0;
+    width: fit-content;
+}
+.btn-logout:hover { text-decoration: underline; }
+.sidebar-loading { color: #718096; text-align: center; font-size: 0.9rem; }
+
+/* ==========================================================================
+   Responsive Media Queries (ریسپانسیو موبایل)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .header-container {
+        justify-content: space-between;
+        padding: 10px 15px;
+    }
+    
+    /* در موبایل، لوگو به صورت مطلق وسط نباشد تا با سرچ باکس تداخل نکند و فضا باز شود */
+    .logo {
+        position: static;
+        transform: none;
+        font-size: 1.2rem;
+    }
+    
+    .search-box {
+        max-width: 150px; /* جمع‌وجور شدن سرچ باکس در موبایل */
+        padding: 4px 10px;
+    }
+    
+    .search-box input {
+        font-size: 0.8rem;
+    }
+    
+    .menu-toggle-btn {
+        font-size: 1.5rem;
+    }
 }
 
 .back-link {
@@ -102,7 +299,7 @@ body {
 /* ---- Hero Banner ---- */
 .hero-banner {
     background: linear-gradient(180deg, rgba(139, 92, 246, 0.15) 0%, rgba(11, 11, 15, 1) 100%),
-    url('https://cdni.pornpics.com/460/5/222/62402203/62402203_014_b10a.jpg') center/cover no-repeat;
+    url('https://i.ibb.co/ym0rxVZG/1.jpg') center/cover no-repeat;
 
     height: 350px;
     display: flex;
@@ -1001,4 +1198,345 @@ body {
 /* افکت کارت‌های قفل شده VIP در صفحه اصلی */
 .vip-locked-card:hover .card-img-wrapper img {
     filter: brightness(0.4) blur(1px); /* تاریک شدن کاور موقع هاور برای حس قفل بودن */
+}
+
+/* دکمه منوی همبرگری */
+.menu-toggle-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.8rem;
+    cursor: pointer;
+    margin-left: 15px;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s;
+}
+.menu-toggle-btn:hover { color: #ff3366; }
+
+/* لایه تاریک پشت منو */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* باکس اصلی منو سمت راست */
+.sidebar-menu {
+    position: fixed;
+    top: 0;
+    right: -300px; /* شروع در حالت بسته */
+    width: 300px;
+    height: 100%;
+    background: #0f111a;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+}
+.sidebar-menu.open {
+    right: 0; /* باز شدن */
+}
+
+/* هدر منو */
+.sidebar-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.sidebar-title { color: #fff; font-weight: bold; font-size: 1.1rem; }
+.close-menu-btn { background: none; border: none; color: #a0aec0; font-size: 1.2rem; cursor: pointer; }
+.close-menu-btn:hover { color: #fff; }
+
+/* آیتم‌های منو */
+.sidebar-nav { padding: 20px 10px; flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
+.sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    color: #cbd5e0;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.sidebar-nav a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    padding-right: 20px;
+}
+
+/* بخش کاربری در پایین منو */
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: #0a0c14;
+}
+
+/* دکمه ورود با گوگل */
+.btn-google-login {
+    width: 100%;
+    padding: 12px;
+    background: #ea4335;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: bold;
+    font-family: inherit;
+    transition: background 0.2s;
+}
+.btn-google-login:hover { background: #d33426; }
+
+/* استایل کاربری که لاگین شده */
+.user-profile-card { display: flex; flex-direction: column; gap: 10px; }
+.user-info-flex { display: flex; align-items: center; gap: 10px; }
+.user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #ff3366; }
+.vip-border { border-color: #ffd700 !important; }
+.user-name { color: #fff; font-size: 0.95rem; font-weight: 500; }
+.user-badge {
+    font-size: 0.8rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    width: fit-content;
+    font-weight: bold;
+}
+.badge-free { background: rgba(255, 255, 255, 0.1); color: #a0aec0; }
+.badge-vip { background: rgba(255, 215, 0, 0.15); color: #ffd700; border: 1px solid #ffd700; }
+.btn-logout {
+    background: none;
+    border: none;
+    color: #e53e3e;
+    cursor: pointer;
+    text-align: right;
+    font-size: 0.85rem;
+    padding: 5px 0 0 0;
+    width: fit-content;
+}
+.btn-logout:hover { text-decoration: underline; }
+.sidebar-loading { color: #718096; text-align: center; font-size: 0.9rem; }
+
+/* ==========================================================================
+   Shop & Pricing Page Styles
+   ========================================================================== */
+   .shop-page-body {
+    background-color: #060814;
+}
+
+.shop-container {
+    padding-top: 50px;
+    padding-bottom: 80px;
+}
+
+.shop-welcome-text {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.shop-welcome-text h1 {
+    font-size: 2.2rem;
+    color: #fff;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.text-gradient-vip {
+    background: linear-gradient(45deg, #ffd700, #ffa500);
+    background-clip: text; 
+    -webkit-background-clip: text; 
+    color: transparent; 
+    -webkit-text-fill-color: transparent;
+    display: inline-block; 
+}
+
+.shop-welcome-text p {
+    color: #a0aec0;
+    max-width: 600px;
+    margin: 0 auto;
+    font-size: 1.05rem;
+}
+
+/* گرید بندی کارت‌ها */
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+    align-items: stretch;
+}
+
+/* استایل باکس کارت‌ها */
+.pricing-card {
+    background: #0f111a;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 30px 20px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pricing-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+/* کارت ویژه (پلن ۳ ماهه) */
+.pricing-card.featured-card {
+    border: 2px solid #ffd700;
+    background: linear-gradient(180deg, #0f111a 0%, #151826 100%);
+    box-shadow: 0 5px 20px rgba(255, 215, 0, 0.1);
+}
+
+.pricing-card.featured-card:hover {
+    box-shadow: 0 8px 30px rgba(255, 215, 0, 0.25);
+}
+
+/* نشان یا بچ روی کارت‌ها */
+.card-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 4px 12px;
+    border-radius: 20px;
+    color: #fff;
+}
+.badge-blue { background: #3182ce; }
+.badge-purple { background: #805ad5; }
+.badge-gold { background: #ffd700; color: #000 !important; }
+.badge-red { background: #e53e3e; }
+
+.plan-title {
+    color: #fff;
+    font-size: 1.3rem;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.plan-duration {
+    color: #718096;
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+}
+
+/* قیمت گذاری */
+.plan-price {
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.old-price {
+    font-size: 0.85rem;
+    color: #e53e3e;
+    text-decoration: line-through;
+    margin-bottom: 4px;
+}
+
+.price-number {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #fff;
+    line-height: 1;
+}
+
+.featured-card .price-number {
+    color: #ffd700;
+}
+
+.price-unit {
+    font-size: 0.85rem;
+    color: #a0aec0;
+    margin-top: 5px;
+}
+
+/* ویژگی‌های هر پلن */
+.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 35px 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.plan-features li {
+    color: #cbd5e0;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.plan-features li i {
+    color: #38a169;
+    font-size: 1.1rem;
+}
+
+.featured-card .plan-features li i {
+    color: #ffd700;
+}
+
+/* دکمه‌های تلگرام */
+.btn-buy {
+    width: 100%;
+    padding: 14px;
+    background: #2b6cb0;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    text-decoration: none;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+}
+
+.btn-buy:hover {
+    background: #2b5c8f;
+    color: #fff;
+}
+
+.btn-buy-gold {
+    background: #ffd700;
+    color: #000;
+}
+
+.btn-buy-gold:hover {
+    background: #e6c200;
+    color: #000;
+}
+
+/* ریسپانسیو اختصاصی برای دستگاه‌های بسیار کوچک */
+@media (max-width: 480px) {
+    .shop-welcome-text h1 { font-size: 1.8rem; }
+    .pricing-grid { grid-template-columns: 1fr; }
 }

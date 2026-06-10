@@ -13,6 +13,7 @@
 
     <header class="main-header">
         <div class="header-container">
+            <button id="menuToggleBtn" class="menu-toggle-btn"><i class="bi bi-list"></i></button>
             <a href="index.html" class="logo">GHOST <span>MOVIES</span></a>
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="جستجوی فیلم، توضیحات یا هشتگ...">
@@ -67,6 +68,25 @@
 
     <button id="scrollTopBtn" title="بازگشت به بالا">↑</button>
 
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar-menu" id="sidebarMenu">
+        <div class="sidebar-header">
+            <span class="sidebar-title">منوی دسترسی</span>
+            <button id="closeMenuBtn" class="close-menu-btn"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="index.html"><i class="bi bi-house-door"></i> خانه</a>
+            <a href="vip.html"><i class="bi bi-crown"></i> بخش VIP</a>
+            <a href="shop.html"><i class="bi bi-bag-check"></i> خرید سرویس</a>
+        </nav>
+
+        <div class="sidebar-footer" id="userProfileSection">
+            <div class="sidebar-loading">در حال بارگذاری وضعیت کاربری...</div>
+        </div>
+    </aside>
+
+    <script type="module" src="js/menu.js"></script>
     <script type="module" src="js/app.js"></script>
 </body>
 
