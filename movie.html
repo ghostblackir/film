@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نمایش فیلم - GHOST MOVIES</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style-enhancer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
@@ -22,11 +23,59 @@
         <div id="movieLoading" class="skeleton-player"></div>
 
         <div id="movieContent" class="hidden">
-            <div class="player-wrapper">
-                <video id="ghostPlayer" controls controlsList="nodownload" poster="">
-                    <source id="videoSource" src="" type="video/mp4">
-                    مرورگر شما از پخش ویدئو پشتیبانی نمی‌کند.
-                </video>
+
+            <div class="custom-player-frame">
+                <div class="player-wrapper custom-video-container" id="customVideoPlayer">
+
+                    <video id="ghostPlayer" preload="metadata" poster="">
+                        <source id="videoSource" src="" type="video/mp4">
+                        مرورگر شما از پخش ویدئو پشتیبانی نمی‌کند.
+                    </video>
+
+                    <div id="adOverlay" class="ad-overlay hidden">
+                        <video id="adVideo" preload="metadata"></video>
+                        <div class="ad-badge">تبلیغات</div>
+                        <div class="ad-controls">
+                            <a id="adLinkBtn" href="#" target="_blank" class="ad-link-btn">
+                                <i class="bi bi-box-arrow-up-right"></i> ورود به وب‌سایت
+                            </a>
+                            <button id="adSkipBtn" class="ad-skip-btn" disabled>
+                                منتظر بمانید (۵)...
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="custom-controls">
+                        <div class="progress-container" id="progressContainer">
+                            <div class="progress-bar-buffered" id="bufferedBar"></div>
+                            <div class="progress-bar-filled" id="progressBar"></div>
+                        </div>
+
+                        <div class="controls-row">
+                            <div class="controls-right">
+                                <button id="playPauseBtn" class="control-btn" title="پخش/توقف">
+                                    <i class="bi bi-play-fill"></i>
+                                </button>
+                                <div class="volume-container">
+                                    <button id="muteBtn" class="control-btn">
+                                        <i class="bi bi-volume-up-fill"></i>
+                                    </button>
+                                    <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1"
+                                        class="volume-slider">
+                                </div>
+                                <div class="time-display">
+                                    <span id="currentTime">00:00</span> / <span id="totalDuration">00:00</span>
+                                </div>
+                            </div>
+
+                            <div class="controls-left">
+                                <button id="fullscreenBtn" class="control-btn" title="تمام صفحه">
+                                    <i class="bi bi-fullscreen"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="movie-meta-box">
@@ -34,9 +83,9 @@
                     <h1 id="movieTitle" class="movie-detail-title">عنوان فیلم</h1>
 
                     <div class="movie-actions">
-                        <a id="downloadBtn" href="#" download class="btn-action btn-download" target="_blank">
-                            <i class="bi bi-cloud-arrow-down-fill"></i> دانلود فیلم
-                        </a>
+                        <button id="downloadBtn" class="btn-action btn-download">
+                            <i class="bi bi-gem"></i> دانلود فیلم (نیاز به ۵۰ سکه)
+                        </button>
 
                         <div class="like-dislike-bundle">
                             <button id="likeBtn" class="btn-bundle-like">
@@ -54,33 +103,50 @@
                         <span id="movieDuration">🕒 ۰۰:۰۰</span>
                     </div>
 
-                    <div class="movie-tags" id="movieTags">
-                    </div>
+                    <div class="movie-tags" id="movieTags"></div>
 
                     <p id="movieDescription" class="movie-detail-desc">توضیحات فیلم...</p>
 
                     <hr class="section-divider">
 
                     <div class="comments-section">
-                        <h3> دیدگاه‌های کاربران (<span id="commentsCount">۰</span>)</h3>
+                        <h3><i class="bi bi-chat-left-heart-fill" style="color:var(--purple-primary);"></i> دیدگاه‌های
+                            کاربران (<span id="commentsCount">۰</span>)</h3>
 
-                        <form id="commentForm" class="comment-form">
-                            <input type="text" id="commenterName" placeholder="نام شما..." required>
-                            <textarea id="commentText" rows="3" placeholder="نظر خود را درباره این فیلم بنویسید..."
-                                required></textarea>
-                            <button type="submit" class="btn-submit-comment">ارسال دیدگاه</button>
+                        <div id="replyIndicator" class="reply-indicator hidden">
+                            <span>در حال پاسخ دادن به یک نظر...</span>
+                            <button id="cancelReplyBtn" type="button" class="btn-cancel-reply">انصراف</button>
+                        </div>
+
+                        <form id="commentForm" class="comment-form-pro">
+                            <div class="comment-inputs-row">
+                                <input type="text" id="commenterName" placeholder="نام و نام خانوادگی..." required>
+                                <input type="email" id="commenterEmail" placeholder="آدرس ایمیل (محفوظ می‌ماند)..."
+                                    required>
+                            </div>
+                            <div class="comment-textarea-wrapper">
+                                <textarea id="commentText" rows="3" placeholder="دیدگاه محترمانه خود را بنویسید..."
+                                    required></textarea>
+                                    <button type="button" id="emojiToggleBtn" class="btn-emoji" title="افزودن ایموجی">
+                                        <i class="bi bi-emoji-smile"></i>
+                                    </button>
+                            </div>
+                            <button type="submit" class="btn-submit-comment-pro">ثبت دیدگاه طلایی</button>
                         </form>
 
-                        <div id="commentsList" class="comments-list">
-                        </div>
+                        <div id="commentsList" class="comments-list-pro"></div>
                     </div>
                 </div>
 
                 <section class="movie-section similar-section">
                     <h2 class="section-title">فیلم‌های مشابه</h2>
-                    <div class="movies-grid" id="similarMoviesGrid">
+                    <div class="movies-grid" id="similarMoviesGrid"></div>
+                    <div class="load-more-container" style="text-align: center; margin-top: 25px;">
+                        <button id="loadMoreSimilarBtn" class="btn-load-more hidden">مشاهده فیلم‌های بیشتر <i
+                                class="bi bi-chevron-down"></i></button>
                     </div>
                 </section>
+            </div>
     </main>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -89,17 +155,175 @@
             <span class="sidebar-title">منوی دسترسی</span>
             <button id="closeMenuBtn" class="close-menu-btn"><i class="bi bi-x-lg"></i></button>
         </div>
-
         <nav class="sidebar-nav">
             <a href="index.html"><i class="bi bi-house-door"></i> خانه</a>
-            <a href="vip.html"><i class="bi bi-crown"></i> بخش VIP</a>
+            <a href="vip.html"><i class="bi bi-gem"></i> بخش VIP</a>
             <a href="shop.html"><i class="bi bi-bag-check"></i> خرید سرویس</a>
+            <a href="live.html"><i class="bi bi-fire"></i>LIVE</a>
         </nav>
-
         <div class="sidebar-footer" id="userProfileSection">
             <div class="sidebar-loading">در حال بارگذاری وضعیت کاربری...</div>
         </div>
     </aside>
+
+    <div id="downloadCoinModal" class="coin-modal-overlay" style="display: none;">
+        <div class="coin-modal-card">
+            <div class="coin-modal-header">
+                <i class="bi bi-coin coin-animation"></i>
+                <h3>تایید عملیات دانلود</h3>
+            </div>
+            <div class="coin-modal-body">
+                <p>برای دانلود این ویدیو تعداد <span style="color: #ffd700; font-weight: bold;">۵۰ سکه</span> از حساب
+                    شما کسر خواهد شد.</p>
+                <div class="user-current-coins-status">
+                    موجودی فعلی شما: <span id="modalUserCoins" style="color: #4caf50; font-weight: bold;">...</span> سکه
+                </div>
+            </div>
+            <div class="coin-modal-actions">
+                <button id="confirmDownloadBtn" class="btn-confirm-coin">⚡ تایید و دانلود</button>
+                <button id="cancelDownloadBtn" class="btn-cancel-coin">انصراف</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* استایل اختصاصی کادر تایید سکه */
+        .coin-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .coin-modal-card {
+            background: #1a202c;
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+            width: 90%;
+            max-width: 420px;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            color: #fff;
+            font-family: inherit;
+            animation: slideUp 0.3s ease;
+        }
+
+        .coin-modal-header i {
+            font-size: 3rem;
+            color: #ffd700;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .coin-modal-header h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .coin-modal-body p {
+            font-size: 1rem;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .user-current-coins-status {
+            background: #2d3748;
+            padding: 8px 15px;
+            border-radius: 8px;
+            display: inline-block;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            border: 1px solid #ffd7001a;
+        }
+
+        .coin-modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn-confirm-coin {
+            background: #ffd700;
+            color: #000;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .btn-confirm-coin:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-cancel-coin {
+            background: #2d3748;
+            color: #a0aec0;
+            border: 1px solid #4a5568;
+            padding: 10px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .btn-cancel-coin:hover {
+            background: #4a5568;
+            color: #fff;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .coin-animation {
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+    </style>
 
     <script type="module" src="js/menu.js"></script>
     <script type="module" src="js/movie.js"></script>

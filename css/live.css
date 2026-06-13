@@ -1,0 +1,444 @@
+:root {
+    --bg-dark: #0a0a12;
+    --card-dark: #121225;
+    --accent-neon: #ff2a74;
+    --accent-blue: #00f0ff;
+    --text-main: #ffffff;
+    --text-muted: #8a8ab0;
+    --border-color: #232343;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* ساختار اصلی دو ستونه در دسکتاپ */
+.live-wrapper {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 1400px;
+    height: 100vh;
+    padding: 15px;
+    gap: 15px;
+}
+
+@media (min-width: 992px) {
+    .live-wrapper {
+        grid-template-columns: 3fr 1fr; /* ویدیو بزرگتر سمت چپ، چت سمت راست */
+        height: calc(100vh - 40px);
+    }
+}
+
+/* بخش ویدیو */
+.video-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.video-wrapper {
+    position: relative;
+    background: #000;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
+}
+
+.video-js {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16 / 9;
+}
+
+.status-tag {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    z-index: 10;
+    text-transform: uppercase;
+}
+.status-tag.online { background: var(--accent-neon); box-shadow: 0 0 15px var(--accent-neon); }
+.status-tag.offline { background: #333; }
+
+/* جزییات استریم و دکمه لایک */
+.stream-details {
+    background: var(--card-dark);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.title-row h1 { font-size: 22px; font-weight: 700; color: #fff; }
+
+.stream-details p { color: var(--text-muted); font-size: 15px; line-height: 1.6; }
+
+/* دکمه لایک نئونی */
+.like-button {
+    background: rgba(255, 42, 116, 0.1);
+    border: 1px solid var(--accent-neon);
+    color: var(--accent-neon);
+    padding: 10px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+.like-button:hover {
+    background: var(--accent-neon);
+    color: #fff;
+    box-shadow: 0 0 15px var(--accent-neon);
+}
+.like-button.liked i {
+    font-weight: 900; /* تو پر شدن قلب */
+}
+
+/* بخش چت روم */
+.chat-section {
+    background: var(--card-dark);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 450px; /* روی موبایل ارتفاع ثابت میگیره */
+}
+
+@media (min-width: 992px) {
+    .chat-section { height: 100%; } /* روی دسکتاپ هم‌قد ویدیو میشه */
+}
+
+.chat-header {
+    padding: 15px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 16px;
+    color: var(--accent-blue);
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* استایل پیام‌ها */
+.chat-msg {
+    font-size: 14px;
+    line-height: 1.4;
+    background: rgba(255,255,255,0.03);
+    padding: 8px 12px;
+    border-radius: 10px;
+    border-right: 3px solid var(--accent-blue);
+}
+.chat-msg .user { color: var(--accent-blue); font-weight: bold; margin-left: 5px; }
+.system-msg { text-align: center; color: var(--text-muted); font-size: 12px; font-style: italic; }
+
+/* باکس ورودی چت */
+.chat-input-area {
+    padding: 15px;
+    display: flex;
+    gap: 10px;
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid var(--border-color);
+}
+
+.chat-input-area input {
+    flex: 1;
+    background: #0a0a12;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 12px;
+    color: #fff;
+    font-size: 14px;
+}
+.chat-input-area input:focus { outline: none; border-color: var(--accent-blue); }
+
+.chat-input-area button {
+    background: var(--accent-blue);
+    color: #000;
+    border: none;
+    width: 45px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.2s;
+}
+.chat-input-area button:hover { transform: scale(1.05); background: #00c2cf; }
+
+/* بخش دکمه لاگین گوگل و پروفایل */
+.google-login-btn {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s;
+}
+.google-login-btn:hover { background: #f1f1f1; transform: scale(1.02); }
+
+.user-avatar-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* آمار ویوورها */
+.view-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 240, 255, 0.1);
+    color: var(--accent-blue);
+    padding: 8px 14px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: bold;
+    border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+.stats-and-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ساختار جدید مسیج‌های چتروم */
+.chat-msg {
+    display: flex;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 10px;
+    border-radius: 12px;
+    align-items: flex-start;
+    border: 1px solid rgba(255,255,255,0.02);
+}
+
+/* ظاهر متمایز پیام‌های خود ادمین */
+.admin-message-style {
+    background: rgba(255, 42, 116, 0.05) !important;
+    border-color: rgba(255, 42, 116, 0.2) !important;
+}
+
+.chat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+
+.msg-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.msg-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.user-name {
+    font-size: 13px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* نشان‌ها یا بدج‌ها */
+.badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.user-badge {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+}
+
+.admin-badge {
+    background: rgba(0, 123, 255, 0.2);
+    color: #3897f0; /* آبی رسمی تیک آد */
+    border: 1px solid rgba(0, 123, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.admin-badge i {
+    font-size: 11px;
+}
+
+.chat-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* غیرفعال شدن دکمه لایک بعد از کلیک */
+.like-button:disabled {
+    background: var(--accent-neon) !important;
+    color: #fff !important;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.8;
+}
+
+/* مطمئن شدن از موقعیت‌دهی درست داخل کادر ویدیو */
+.video-wrapper {
+    position: relative;
+    background: #000;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
+    aspect-ratio: 16 / 9; /* کادر همیشه مستطیل استاندارد می‌مونه */
+    width: 100%;
+}
+
+.video-js {
+    width: 100% !important;
+    height: 100% !important; /* ویدیو کل کادر را می‌گیرد */
+}
+
+/* استایل جدید گیف برفک برای قرارگیری دقیق داخل کادر ویدیو */
+#offline-gif {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* گیف کاملاً کادر ویدیو رو بدون دفرمه شدن پر می‌کنه */
+    z-index: 5; /* قرار گرفتن روی ویدیو */
+    display: none; /* در حالت عادی مخفی است */
+}
+
+/* تگ وضعیت باید بالاتر از گیف قرار بگیرد تا دیده شود */
+.status-tag {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    z-index: 10; /* بالاتر از گیف برفک */
+}
+
+/* کادر شمارش معکوس روی کادر ویدیو */
+.countdown-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(10, 10, 18, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    padding: 20px 30px;
+    border-radius: 16px;
+    text-align: center;
+    z-index: 6; /* بالاتر از گیف برفک و پایین‌تر از status-tag */
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+    direction: ltr;
+}
+
+.countdown-title {
+    font-size: 14px;
+    color: var(--accent-blue);
+    font-weight: bold;
+    margin-bottom: 12px;
+    font-family: system-ui, -apple-system, sans-serif;
+    direction: rtl;
+}
+
+.countdown-timer {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.time-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 50px;
+}
+
+.time-block span {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+
+.time-block label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* دکمه زنگوله خبرم کن */
+.notify-button {
+    background: rgba(0, 240, 255, 0.05);
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    color: var(--accent-blue);
+    padding: 10px 18px;
+    border-radius: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.notify-button:hover, .notify-button.active {
+    background: var(--accent-blue);
+    color: #000;
+    box-shadow: 0 0 15px var(--accent-blue);
+}

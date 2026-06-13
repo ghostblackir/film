@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اتاق فرمان پخش زنده</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/live.css"> <style>
+        body { padding: 20px; display: flex; justify-content: center; background: #09090e; }
+        .admin-wrapper { display: grid; grid-template-columns: 1fr; width: 100%; max-width: 1200px; gap: 20px; }
+        @media (min-width: 992px) { .admin-wrapper { grid-template-columns: 1.5fr 1fr; } }
+        .form-box, .admin-chat-box { background: #14142b; border: 1px solid #26264d; padding: 25px; border-radius: 20px; }
+        .field { display: flex; flex-direction: column; margin-bottom: 15px; }
+        .field label { font-size: 14px; margin-bottom: 6px; color: #b3b3d8; }
+        .field input, .field textarea { background: #09090e; border: 1px solid #26264d; padding: 12px; border-radius: 10px; color: #fff; }
+        .row-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-red { background: #ff2a74; color: #fff; border: none; padding: 14px; border-radius: 10px; cursor: pointer; flex: 1; font-weight: bold; }
+        .btn-blue { background: #00f0ff; color: #000; border: none; padding: 14px; border-radius: 10px; cursor: pointer; flex: 2; font-weight: bold; }
+        .chat-actions { display: flex; gap: 5px; margin-top: 5px; }
+        .btn-action { padding: 3px 8px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; color: #fff; }
+        .btn-del { background: #f59e0b; }
+        .btn-ban { background: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-wrapper">
+        <div class="form-box">
+            <h2><i class="fa-solid fa-sliders"></i> تنظیمات و زمان‌بندی لایو</h2>
+            <br>
+            <form id="admin-form">
+                <div class="field">
+                    <label>عنوان استریم</label>
+                    <input type="text" id="stream-title-input" required>
+                </div>
+                <div class="field">
+                    <label>توضیحات تکمیلی</label>
+                    <textarea id="stream-desc-input" rows="2"></textarea>
+                </div>
+                <div class="field">
+                    <label>لینک منبع (M3U8)</label>
+                    <input type="url" id="stream-url-input" style="direction: ltr; text-align: left;" required>
+                </div>
+                
+                <div class="row-fields">
+                    <div class="field">
+                        <label>تاریخ پخش (میلادی)</label>
+                        <input type="date" id="schedule-date">
+                    </div>
+                    <div class="field">
+                        <label>ساعت پخش</label>
+                        <input type="time" id="schedule-time">
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button type="button" id="reset-btn" class="btn-red"><i class="fa-solid fa-power-off"></i> قطع و ریست کل لایو</button>
+                    <button type="submit" id="submit-btn" class="btn-blue"><i class="fa-solid fa-circle-check"></i> ذخیره و انتشار</button>
+                </div>
+            </form>
+            <div id="status-message" class="alert ok" style="display:none; margin-top:10px; background:#10b981; padding:10px; border-radius:8px; text-align:center;"></div>
+        </div>
+
+        <div class="admin-chat-box chat-section">
+            <div class="chat-header">
+                <h3><i class="fa-solid fa-shield-halved"></i> مدیریت چت و کاربران</h3>
+            </div>
+            <div class="chat-messages" id="admin-chat-messages" style="height: 450px;">
+                </div>
+        </div>
+    </div>
+
+    <script type="module" src="js/admin-live.js"></script>
+</body>
+</html>

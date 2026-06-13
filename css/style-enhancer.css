@@ -1,0 +1,604 @@
+/* ==========================================================================
+   GHOST PLAYER - Premium Advanced Graphical Enhancements (v2.0)
+   ========================================================================== */
+
+   :root {
+    --purple-glow: 0 0 15px rgba(139, 92, 246, 0.6);
+    --gold-glow: 0 0 15px rgba(255, 215, 0, 0.5);
+    --neon-gradient: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    --gold-gradient: linear-gradient(135deg, #ffd700 0%, #ffa500 100%);
+    --glass-bg: rgba(21, 21, 32, 0.7);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* --------------------------------------------------------------------------
+   ۱. اصلاح اسکرول‌بار اختصاصی (حل مشکل کار نکردن در کروم، اج و فایرفاکس)
+   -------------------------------------------------------------------------- */
+/* برای مرورگر فایرفاکس */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #27273a #0b0b0f;
+}
+
+/* برای مرورگرهای کروم، اج، سافاری و اپرا */
+::-webkit-scrollbar {
+    width: 10px !important;
+    height: 10px !important;
+}
+
+::-webkit-scrollbar-track {
+    background: #0b0b0f !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #27273a !important;
+    border-radius: 20px !important;
+    border: 2px solid #0b0b0f !important;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #8b5cf6 !important; /* رنگ بنفش اصلی سایت */
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.8) !important;
+}
+
+/* --------------------------------------------------------------------------
+   ۲. اصلاح و حل مشکل ارور ماسک کارت‌ها
+   -------------------------------------------------------------------------- */
+.movie-card {
+    position: relative;
+    transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), 
+                box-shadow 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
+}
+.movie-card:hover .card-img-wrapper img {
+    transform: scale(1.06);
+}
+.card-img-wrapper img {
+    transition: transform 0.5s ease, opacity 0.5s ease !important;
+}
+.movie-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    padding: 1px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.05), transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   ۳. ویژگی‌های گرافیکی قبلی (بهینه‌سازی شده)
+   -------------------------------------------------------------------------- */
+.logo:hover span { text-shadow: var(--purple-glow), 0 0 30px rgba(139, 92, 246, 0.4); transition: text-shadow 0.3s ease; }
+.vip-logo span { text-shadow: var(--gold-glow), 0 0 25px rgba(255, 215, 0, 0.3) !important; }
+.sidebar-menu, .movie-meta-box, .comment-form-pro, .form-wrapper {
+    background: var(--glass-bg) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: var(--glass-border) !important;
+}
+.btn-action, .like-dislike-bundle { position: relative; overflow: hidden; }
+.btn-download::before {
+    content: ''; position: absolute; top: 0; right: -50px; width: 30px; height: 100%;
+    background: rgba(255, 255, 255, 0.2); transform: skewX(-30deg); transition: 0s;
+}
+.btn-download:hover::before { right: 110%; transition: right 0.7s ease-in-out; }
+#vipFloatingBtn { animation: floatingGlow 3s ease-in-out infinite alternate; }
+@keyframes floatingGlow {
+    0% { transform: translateY(0); box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); }
+    100% { transform: translateY(-6px); box-shadow: 0 12px 25px rgba(255, 215, 0, 0.7), var(--gold-glow); }
+}
+.search-box:focus-within, .comment-form-pro input:focus, .comment-textarea-wrapper textarea:focus {
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.25); transition: all 0.3s ease;
+}
+.skeleton-card, .skeleton-player {
+    background: linear-gradient(90deg, #151520 25%, #222235 50%, #151520 75%) !important;
+    background-size: 200% 100% !important;
+}
+
+
+/* ==========================================================================
+   اضافه شدن ۲۰ ویژگی گرافیکی جدید (New Premium Features)
+   ========================================================================== */
+
+/* ۱. افکت سه‌بعدی کارت‌ها هنگام هاور (Subtle 3D Tilt Effect) */
+.movie-card:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    box-shadow: 0 20px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(139, 92, 246, 0.2) !important;
+}
+
+/* ۲. خط متحرک نئونی زیر تایتل‌های اصلی بخش‌ها */
+.section-title {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 8px;
+}
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 40px; height: 3px;
+    background: var(--neon-gradient);
+    border-radius: 3px;
+    transition: width 0.4s ease;
+}
+.section-title:hover::after {
+    width: 100%;
+}
+
+/* ۳. افکت تاریک و روشن شدن ملایم پس‌زمینه سایت (Ambient Pulse) */
+body {
+    animation: ambientPulse 20s ease-in-out infinite alternate;
+}
+@keyframes ambientPulse {
+    0% { background-color: #0b0b0f; }
+    100% { background-color: #08080c; }
+}
+
+/* ۴. استایل منحصربه‌فرد برای برچسب کیفیت فیلم‌ها (Quality Badge) */
+.quality-badge, .badge-quality {
+    background: var(--neon-gradient) !important;
+    box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ۵. افکت نئونی برای دکمه پخش ویدیو (Play Button Pulse) */
+.play-btn, .btn-play-video {
+    position: relative;
+    animation: playPulse 2s infinite;
+}
+@keyframes playPulse {
+    0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.6); }
+    70% { box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+}
+
+/* ۶. افکت گلس‌مورفیسم پیشرفته روی منوی ناوبری بالای صفحه (Navbar Glass) */
+.main-header {
+    background: rgba(15, 17, 26, 0.75) !important;
+    backdrop-filter: blur(15px) !important;
+    -webkit-backdrop-filter: blur(15px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ۷. افکت زوم و فیلتر سیاه سفید تصاویر سایدبار در حالت عادی و رنگی شدن در هاور */
+.sidebar-item img, .small-movie-thumb {
+    filter: grayscale(30%) contrast(110%);
+    transition: filter 0.3s ease, transform 0.3s ease;
+}
+.sidebar-item:hover img, .small-movie-thumb:hover {
+    filter: grayscale(0%) contrast(100%);
+    transform: scale(1.05);
+}
+
+/* ۸. انیمیشن باز شدن نرم منوهای آبشاری (Dropdown Smooth Fade) */
+.dropdown-menu, .submenu {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    visibility: hidden;
+}
+.dropdown-parent:hover .dropdown-menu, .has-submenu:hover .submenu {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+/* ۹. افکت هاور روی دکمه لایک کامنت‌ها (تپش قلب) */
+.comment-heart-btn:hover {
+    animation: heartBeat 0.6s infinite alternate;
+}
+@keyframes heartBeat {
+    to { transform: scale(1.2); }
+}
+
+/* ۱۰. جداکننده گرادینتی بین کامنت‌ها */
+.comment-item {
+    border-bottom: 1px solid transparent !important;
+    border-image: linear-gradient(to left, rgba(139, 92, 246, 0.1), rgba(255,255,255,0.02), transparent) 1;
+}
+
+/* ۱۱. افکت Glow روی بوردر اینپوت‌ها موقع فوکوس */
+.search-box input:focus, .form-group input:focus {
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4) !important;
+}
+
+/* ۱۲. اضافه شدن هاور جذاب متنی به لینک‌های منو (Slide Underline) */
+.nav-link {
+    position: relative;
+}
+.nav-link::before {
+    content: '';
+    position: absolute;
+    width: 0; height: 2px;
+    bottom: -4px; right: 0;
+    background-color: #8b5cf6;
+    transition: width 0.3s ease;
+}
+.nav-link:hover::before {
+    width: 100%;
+}
+
+/* ۱۳. افکت درخشش طلایی کارت‌های ویژه یا VIP */
+.movie-card.vip-card {
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1);
+}
+.movie-card.vip-card:hover {
+    box-shadow: 0 15px 30px rgba(255, 215, 0, 0.2), var(--gold-glow) !important;
+    border-color: #ffd700;
+}
+
+/* ۱۴. تغییر ظاهر دکمه "مشاهده بیشتر" به استایل سایبرپانک مدرن */
+.btn-load-more {
+    background: transparent !important;
+    border: 2px solid #8b5cf6 !important;
+    color: #ffffff !important;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: all 0.3s ease !important;
+}
+.btn-load-more:hover {
+    background: #8b5cf6 !important;
+    box-shadow: var(--purple-glow) !important;
+    transform: translateY(-2px);
+}
+
+/* ۱۵. افکت هاور روی دکمه‌های شبکه‌های اجتماعی (Social Glow) */
+.social-icon:hover {
+    transform: translateY(-4px) scale(1.1);
+    color: #fff !important;
+    text-shadow: 0 0 10px currentColor;
+}
+
+/* ۱۶. افکت تار شدن هوشمند بک‌گراند ویدیو پلیر هنگام مکث یا لودینگ */
+.video-player-wrapper.is-paused .video-poster {
+    filter: blur(4px);
+    transition: filter 0.4s ease;
+}
+
+/* ۱۷. افکت پاپ‌آپ ریز روی تگ‌های دسته‌بندی فیلم (Genre Tags) */
+.genre-tag, .meta-genres a {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.25s ease;
+}
+.genre-tag:hover, .meta-genres a:hover {
+    background: #8b5cf6 !important;
+    color: #fff !important;
+    transform: scale(1.05) translateY(-1px);
+}
+
+/* ۱۸. تغییر رنگ متن انتخاب شده توسط کاربر (Selection Text Highlight) */
+::selection {
+    background: #8b5cf6;
+    color: #ffffff;
+}
+
+/* ۱۹. افکت سایه متن برای عنوان‌های بزرگ صفحه سینگل فیلم */
+.movie-single-title {
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(180deg, #ffffff 0%, #a0aec0 100%);
+    
+    /* نسخه پیشوند‌دار برای مرورگرهای کرومیوم (کروم، اج) و سافاری */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* نسخه استاندارد برای سازگاری با تمام مرورگرها (حل ارور) */
+    background-clip: text;
+}
+
+/* ۲۰. انیمیشن نرم ظاهر شدن المان‌های صفحه هنگام لود اولیه (Page Entrance) */
+.main-content, .movie-grid {
+    animation: fadeInPage 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   ULTRA SCI-FI CYBERPUNK PRELOADER SYSTEM (GHOST MOVIES)
+   ========================================================================== */
+   #cyber-preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: #050508;
+    z-index: 99999; /* بالاتر از تمام المان‌های سایت جهت پوشش کامل */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    direction: ltr; /* جهت ساختار رادار از چپ به راست */
+    transition: opacity 0.6s cubic-bezier(0.77, 0, 0.175, 1), visibility 0.6s;
+}
+
+/* افکت شطرنجی ریز ماتریکسی روی بک‌گراند لودینگ */
+#cyber-preloader::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                      linear-gradient(90deg, rgba(139, 92, 246, 0.02), rgba(99, 102, 241, 0.02));
+    background-size: 100% 4px, 6px 100%;
+    pointer-events: none;
+}
+
+.sci-fi-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* دایره‌های رادار فضایی نئونی با جهت‌های چرخش معکوس */
+.radar-circle {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px dashed transparent;
+}
+
+.radar-circle.outer {
+    width: 260px;
+    height: 260px;
+    border-top-color: #8b5cf6;
+    border-bottom-color: rgba(139, 92, 246, 0.15);
+    animation: cyberSpin 4s linear infinite;
+}
+
+.radar-circle.middle {
+    width: 200px;
+    height: 200px;
+    border-left-color: #6366f1;
+    border-right-color: rgba(99, 102, 241, 0.15);
+    animation: cyberSpinReverse 3s linear infinite;
+}
+
+.radar-circle.inner {
+    width: 140px;
+    height: 140px;
+    border-top-color: #a855f7;
+    border-left-color: rgba(168, 85, 247, 0.2);
+    border-style: dotted;
+    animation: cyberSpin 1.5s linear infinite;
+}
+
+/* خط اسکنر لیزری متحرک */
+.cyber-scanner {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+    box-shadow: 0 0 12px #8b5cf6;
+    top: 0;
+    animation: scanVertically 2.5s ease-in-out infinite;
+}
+
+/* متون لودینگ داخل مرکز رادار */
+.loading-terminal {
+    position: absolute;
+    text-align: center;
+    font-family: monospace;
+    color: #fff;
+    z-index: 10;
+}
+
+.brand-glitch {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: #8b5cf6;
+    text-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+    margin-bottom: 4px;
+}
+
+.status-text {
+    font-size: 9px;
+    color: #a0aec0;
+    letter-spacing: 1px;
+    animation: pulseText 0.8s ease-in-out infinite alternate;
+}
+
+.matrix-counter {
+    font-size: 36px;
+    font-weight: 900;
+    margin-top: 8px;
+    background: linear-gradient(180deg, #fff, #8b5cf6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+}
+
+/* تعریف انیمیشن‌ها */
+@keyframes cyberSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes cyberSpinReverse {
+    0% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+}
+
+@keyframes scanVertically {
+    0% { top: 12%; opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { top: 88%; opacity: 0; }
+}
+
+@keyframes pulseText {
+    0% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+/* کلاس نهایی برای محو کردن روان لودر پس از لود کامل سایت */
+.preloader-hidden {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none;
+}
+
+
+/* ==========================================================================
+   premium scifi age-gate styles (ghost movies)
+   ========================================================================== */
+   .age-gate-box {
+    position: absolute;
+    width: 360px;
+    padding: 30px 25px;
+    background: rgba(15, 15, 26, 0.75);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(139, 92, 246, 0.15);
+    text-align: center;
+    z-index: 100;
+    direction: rtl;
+    
+    /* در حالت اولیه مخفی است و با کلاس فعال‌کننده باز می‌شود */
+    opacity: 0;
+    transform: scale(0.85) cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* کلاس فعال شدن کادر تایید سن */
+.age-gate-box.show-gate {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+
+.gate-icon {
+    font-size: 32px;
+    color: #8b5cf6;
+    text-shadow: 0 0 15px rgba(139, 92, 246, 0.6);
+    margin-bottom: 10px;
+    animation: pulseIcon 2s infinite alternate;
+}
+
+.age-gate-box h2 {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.gate-desc {
+    color: #a0aec0;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+/* 😂 انیمیشن نئونی و چشمک‌زن شوخی سنگ شدن 😂 */
+.funny-warning {
+    font-family: monospace, system-ui;
+    font-size: 12px;
+    color: #ff3366;
+    font-weight: bold;
+    background: rgba(255, 51, 102, 0.07);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px dashed rgba(255, 51, 102, 0.3);
+    margin-bottom: 20px;
+    text-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
+    animation: cyberBlink 1.2s infinite steps(2, start);
+}
+
+.gate-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.gate-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.gate-btn.accept {
+    background: var(--neon-gradient);
+    border: none;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.gate-btn.accept:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--purple-glow);
+}
+
+.gate-btn.reject {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #a0aec0;
+}
+
+.gate-btn.reject:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* انیمیشن‌های مورد نیاز */
+@keyframes cyberBlink {
+    to { visibility: hidden; }
+}
+
+@keyframes pulseIcon {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.1); opacity: 1; }
+}
+/* ==========================================================================
+   PRELOADER VIDEO BACKGROUND EXTRA STYLES
+   ========================================================================== */
+   .preloader-bg-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* کشیده نشدن ویدیو در مانیتورهای مختلف */
+    z-index: -1; /* فرستادن ویدیو به پشت رادارها و متون */
+    pointer-events: none;
+    filter: brightness(0.4) contrast(1.1); /* بهینه‌سازی روشنایی ویدیو برای خوانایی متن */
+}
+
+/* اضافه کردن یک هاله رنگی نئونی روی ویدیو برای ترکیب بهتر با تم سایت */
+#cyber-preloader::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, rgba(5, 5, 8, 0.5) 100%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* برای اینکه مطمئن شویم رادارها روی ویدیو قرار می‌گیرند */
+.sci-fi-container {
+    z-index: 2;
+}

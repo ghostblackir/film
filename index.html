@@ -6,15 +6,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GHOST MOVIES</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style-enhancer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
 
 <body>
 
+    <div id="cyber-preloader">
+        <video autoplay muted loop playsinline class="preloader-bg-video">
+            <source src="https://videotourl.com/videos/1781361130159-b8a5dbf5-d8f9-4b74-a6e6-4babe3f64710.mp4" type="video/mp4">
+        </video>
+        <div class="sci-fi-container">
+            <div class="radar-circle outer"></div>
+            <div class="radar-circle middle"></div>
+            <div class="radar-circle inner"></div>
+            
+            <div class="cyber-scanner"></div>
+            
+            <div class="loading-terminal">
+                <div class="brand-glitch">GHOST SYSTEMS v3.0</div>
+                <div class="status-text">INITIALIZING INTERFACE...</div>
+                <div class="matrix-counter"><span id="load-percentage">00</span>%</div>
+            </div>
+    
+            <div class="age-gate-box" id="ageGateBox">
+                <div class="gate-icon"><i class="bi bi-shield-lock-fill"></i></div>
+                <h2>تأیید اصالت هویت</h2>
+                <p class="gate-desc">این پلتفرم حاوی محتوای سینمایی پیشرفته است. آیا سن شما بالای ۱۸ سال است?</p>
+                
+                <div class="funny-warning">⚠️ اگه دروغ بگی خدا سنگت میکنه!</div>
+                
+                <div class="gate-buttons">
+                    <button class="gate-btn accept" id="btnAcceptAge">وارد شدن به سیستم</button>
+                    <button class="gate-btn reject" id="btnRejectAge">خروج</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <header class="main-header">
         <div class="header-container">
             <button id="menuToggleBtn" class="menu-toggle-btn"><i class="bi bi-list"></i></button>
-            <a href="index.html" class="logo">GHOST <span>MOVIES</span></a>
+            <a href="index.html" class="logo"><i class="bi bi-patch-check"></i> GHOST <span>MOVIES</span></a>
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="جستجوی فیلم، توضیحات یا هشتگ...">
                 <button id="searchBtn"><i class="bi bi-search"></i></button>
@@ -22,19 +55,17 @@
         </div>
     </header>
 
-    <section class="hero-banner" id="heroBanner">
-        <div class="hero-content">
-            <h1 id="heroTitle">به دنیای فیلم‌ خوش آمدید</h1>
-            <p id="heroDesc">جدیدترین و محبوب‌ترین فیلم‌ها را با کیفیت بالا به صورت آنلاین تماشا کنید.</p>
-        </div>
-    </section>
+    <section class="hero-banner" id="heroBanner"></section>
 
     <main class="container">
         <section class="tags-section">
             <h3 class="section-title"><i class="bi bi-tags-fill"></i> دسته‌بندی موضوعی (هشتگ‌ها)</h3>
             <div class="tags-container-wrapper">
                 <div class="tags-slider" id="tagsSlider">
-                    <span class="tag-badge active" data-tag="all">🔑 همه فیلم‌ها</span>
+                    <span class="tag-badge active" data-tag="all">
+                        <i class="bi bi-camera-video-fill"></i>
+                        همه فیلم‌ها
+                    </span>
                 </div>
             </div>
         </section>
@@ -66,7 +97,7 @@
         <span>VIP</span>
     </a>
 
-    <button id="scrollTopBtn" title="بازگشت به بالا">↑</button>
+    <button id="scrollTopBtn" class="bi bi-arrow-up" title="بازگشت به بالا"></button>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <aside class="sidebar-menu" id="sidebarMenu">
@@ -77,8 +108,9 @@
 
         <nav class="sidebar-nav">
             <a href="index.html"><i class="bi bi-house-door"></i> خانه</a>
-            <a href="vip.html"><i class="bi bi-crown"></i> بخش VIP</a>
+            <a href="vip.html"><i class="bi bi-gem"></i> بخش VIP</a>
             <a href="shop.html"><i class="bi bi-bag-check"></i> خرید سرویس</a>
+            <a href="live.html"><i class="bi bi-fire"></i>LIVE</a>
         </nav>
 
         <div class="sidebar-footer" id="userProfileSection">

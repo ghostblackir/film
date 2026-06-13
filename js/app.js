@@ -255,3 +255,89 @@ function setupScrollTop() {
     });
     btn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const preloader = document.getElementById("cyber-preloader");
+    const percentText = document.getElementById("load-percentage");
+    const terminal = document.querySelector(".loading-terminal");
+    const radarCircles = document.querySelectorAll(".radar-circle");
+    const scanner = document.querySelector(".cyber-scanner");
+    const ageGateBox = document.getElementById("ageGateBox");
+    
+    const btnAccept = document.getElementById("btnAcceptAge");
+    const btnReject = document.getElementById("btnRejectAge");
+    
+    if (!preloader || !percentText) return;
+
+    let count = 0;
+    
+    // ۱. تایمر ماتریکسی همیشه و هر دفعه اجرا می‌شود
+    const counterInterval = setInterval(() => {
+        let increment = Math.floor(Math.random() * 3) + 1;
+        
+        if ((count > 30 && count < 35) || (count > 68 && count < 74)) {
+            increment = Math.random() > 0.7 ? 1 : 0; 
+        }
+
+        count += increment;
+
+        if (count >= 100) {
+            count = 100;
+            clearInterval(counterInterval);
+            
+            // چک کردن حافظه مرورگر: آیا قبلاً تأیید سن انجام شده؟
+            const isAlreadyVerified = localStorage.getItem("ghostMovies_ageVerified") === "true";
+
+            if (isAlreadyVerified) {
+                // ⚡ حالت اول: کاربر قبلاً تأیید کرده -> متن سبز می‌شود و مستقیم وارد سایت می‌شود
+                const statusText = document.querySelector(".status-text");
+                if(statusText) {
+                    statusText.innerText = "ACCESS GRANTED. DECRYPTING...";
+                    statusText.style.color = "#00ffcc";
+                    statusText.style.textShadow = "0 0 10px rgba(0, 255, 204, 0.6)";
+                }
+                
+                setTimeout(() => {
+                    preloader.classList.add("preloader-hidden");
+                }, 800);
+
+            } else {
+                // ⚠️ حالت دوم: بار اول کاربر است -> کادر تأیید سن باز می‌شود
+                const statusText = document.querySelector(".status-text");
+                if(statusText) {
+                    statusText.innerText = "SECURITY GATE TRIGGERED...";
+                    statusText.style.color = "#ffd700";
+                    statusText.style.textShadow = "0 0 10px rgba(255, 215, 0, 0.5)";
+                }
+                
+                setTimeout(() => {
+                    if(terminal) terminal.style.opacity = "0";
+                    if(scanner) scanner.style.opacity = "0";
+                    radarCircles.forEach(circle => circle.style.opacity = "0.1"); 
+                    
+                    if(ageGateBox) ageGateBox.classList.add("show-gate");
+                }, 800);
+            }
+        }
+        
+        percentText.innerText = count < 10 ? '0' + count : count;
+    }, 45);
+
+    // ۲. مدیریت کلیک روی دکمه ورود (فقط برای بار اول)
+    if(btnAccept) {
+        btnAccept.addEventListener("click", () => {
+            // ذخیره در حافظه مرورگر
+            localStorage.setItem("ghostMovies_ageVerified", "true");
+            // محو شدن لودر
+            preloader.classList.add("preloader-hidden");
+        });
+    }
+
+    // ۳. مدیریت دکمه خروج
+    if(btnReject) {
+        btnReject.addEventListener("click", () => {
+            alert("جهت ورود به پلتفرم باید سن شما بالای ۱۸ سال باشد.");
+            window.location.href = "https://www.google.com"; 
+        });
+    }
+});

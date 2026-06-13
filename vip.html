@@ -7,6 +7,7 @@
     <title>GHOST VIP 👑 - بخش ویژه اعضا</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style-enhancer.css">
 </head>
 
 <body class="cyber-vip-body">
@@ -14,7 +15,7 @@
     <header class="main-header vip-header">
         <div class="header-container">
             <button id="menuToggleBtn" class="menu-toggle-btn"><i class="bi bi-list"></i></button>
-            <a href="index.html" class="logo vip-logo">GHOST <span>VIP <i class="bi bi-crown-fill"></i></span></a>
+            <a href="index.html" class="logo vip-logo"><i class="bi bi-gem"></i> GHOST <span>VIP <i class="bi bi-crown-fill"></i></span></a>
             <div class="search-box vip-search-box">
                 <input type="text" id="searchInput" placeholder="جستجوی فیلم، توضیحات یا هشتگ...">
                 <button id="searchBtn"><i class="bi bi-search"></i></button>
@@ -22,18 +23,7 @@
         </div>
     </header>
 
-    <section class="hero-banner vip-hero-banner">
-        <div class="hero-content vip-hero-content">
-            <div class="glitch-wrapper">
-                <h1 class="vip-glitch-text" data-text="دسترسی نامحدود به آرشیو VIP">دسترسی نامحدود به آرشیو VIP</h1>
-            </div>
-            <p>خاص‌ترین و جدیدترین فیلم‌های جهان، بدون سانسور و با بالاترین کیفیت اختصاصی اعضا</p>
-            <div class="vip-status-bar">
-                <span><i class="bi bi-shield-lock-fill"></i> پروتکل امنیتی سایبر</span>
-                <span><i class="bi bi-speedometer2"></i> سرورهای مگا سرعت</span>
-            </div>
-        </div>
-    </section>
+    <section class="hero-banner vip-hero-banner"></section>
 
     <main class="container">
         <section class="movie-section">
@@ -59,20 +49,25 @@
 
         <nav class="sidebar-nav">
             <a href="index.html"><i class="bi bi-house-door"></i> خانه</a>
-            <a href="vip.html"><i class="bi bi-crown"></i> بخش VIP</a>
+            <a href="vip.html"><i class="bi bi-gem"></i> بخش VIP</a>
             <a href="shop.html"><i class="bi bi-bag-check"></i> خرید سرویس</a>
+            <a href="live.html"><i class="bi bi-fire"></i>LIVE</a>
         </nav>
 
         <div class="sidebar-footer" id="userProfileSection">
             <div class="sidebar-loading">در حال بارگذاری وضعیت کاربری...</div>
         </div>
     </aside>
-    
+
     <button id="scrollTopBtn" class="vip-scroll-btn" title="بازگشت به بالا">↑</button>
 
     <script type="module">
         import {
             db,
+            auth, // وارد کردن سیستم Auth
+            onAuthStateChanged, // متد شنود وضعیت کاربر
+            getDoc, // متد گرفتن اطلاعات پروفایل
+            doc,
             collection,
             query,
             orderBy,
@@ -83,6 +78,7 @@
         let currentPage = 1;
         let allVipMovies = [];
         let filteredVipMovies = [];
+        let isUserVip = false; // متغیر سراسری سنجش دسترسی
 
         document.addEventListener('DOMContentLoaded', () => {
             initVipPage();
@@ -90,22 +86,64 @@
 
         function initVipPage() {
             setupScrollTop();
-            fetchVipMoviesLive(); // صدا زدن موتور زنده فایربیس
+            checkUserVipStatus(); // اول وضعیت اشتراک چک می‌شود، سپس فیلم‌ها لود می‌شوند
             setupVipSearch();
+        }
+
+        // بررسی وضعیت واقعی اشتراک کاربر
+        // بررسی وضعیت واقعی اشتراک کاربر و کنترل تاریخ انقضا
+        function checkUserVipStatus() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    try {
+                        const userDocRef = doc(db, 'users', user.uid);
+                        const userDoc = await getDoc(userDocRef);
+
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+
+                            if (userData.access === 'vip') {
+                                const now = new Date();
+                                const expireDate = userData.vipExpireAt ? new Date(userData.vipExpireAt) : null;
+
+                                // اگر زمان اشتراک تموم شده بود:
+                                if (expireDate && now > expireDate) {
+                                    // دیتابیس رو آپدیت کن که دفعات بعد هم رایگان باشه
+                                    const { updateDoc } = await import('./js/firebase.js'); // لود متد آپدیت در صورت نیاز
+                                    await updateDoc(userDocRef, { access: 'free' });
+
+                                    isUserVip = false;
+                                } else {
+                                    // اشتراک هنوز زمان داره و معتبره
+                                    isUserVip = true;
+                                }
+                            } else {
+                                isUserVip = false;
+                            }
+                        } else {
+                            isUserVip = false;
+                        }
+                    } catch (error) {
+                        console.error("خطا در تایید اشتراک:", error);
+                        isUserVip = false;
+                    }
+                } else {
+                    isUserVip = false;
+                }
+
+                fetchVipMoviesLive();
+            });
         }
 
         // شنود آنلاین دیتابیس مخصوص پیج VIP
         function fetchVipMoviesLive() {
             const q = query(collection(db, 'movies'), orderBy('createdAt', 'desc'));
 
-            // فعال کردن آپدیت همزمان کلاینت
             onSnapshot(q, (snapshot) => {
                 const fetchedMovies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // فیلتر آنی فیلم‌های دارای دسترسی vip
                 allVipMovies = fetchedMovies.filter(movie => movie.access === 'vip');
 
-                // اعمال منطق سرچ روی لیست زنده ورودی
                 const searchInput = document.getElementById('searchInput');
                 const txt = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
@@ -118,7 +156,6 @@
                     );
                 }
 
-                // رندر آنی کارت‌ها
                 renderVipGrid();
             }, (error) => {
                 console.error("خطا در لود زنده فیلم‌های وی‌آی‌پی: ", error);
@@ -143,22 +180,29 @@
 
             displayList.forEach(movie => {
                 const card = document.createElement('a');
-                card.href = `movie.html?id=${movie.id}`;
+
+                // ---- دادا اینجا قفل اصلی رو زدم ----
+                if (isUserVip) {
+                    card.href = `movie.html?id=${movie.id}`; // کاربر VIP میره فیلم رو میبینه
+                } else {
+                    card.href = `shop.html`; // کاربر عادی شوت میشه به شاپ برای خرید اشتراک!
+                }
+
                 card.className = 'movie-card vip-movie-card';
 
                 card.innerHTML = `
-                    <div class="card-img-wrapper">
-                        <div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>
-                        <img data-src="${movie.thumbnail}" alt="${movie.title}" class="lazy-img">
-                        <span class="card-duration">${movie.duration}</span>
-                    </div>
-                    <div class="card-info vip-card-info">
-                        <h4 class="card-title">${movie.title}</h4>
-                        <div class="card-meta">
-                            <span style="color: #ffd700;"><i class="bi bi-eye-fill"></i> ${movie.views || 0} بازدید</span>
-                        </div>
-                    </div>
-                `;
+            <div class="card-img-wrapper">
+                <div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>
+                <img data-src="${movie.thumbnail}" alt="${movie.title}" class="lazy-img">
+                <span class="card-duration">${movie.duration}</span>
+            </div>
+            <div class="card-info vip-card-info">
+                <h4 class="card-title">${movie.title}</h4>
+                <div class="card-meta">
+                    <span style="color: #ffd700;"><i class="bi bi-eye-fill"></i> ${movie.views || 0} بازدید</span>
+                </div>
+            </div>
+        `;
                 grid.appendChild(card);
             });
 

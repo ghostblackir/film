@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پخش زنده اختصاصی</title>
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/live.css">
+</head>
+<body>
+
+    <div class="live-wrapper">
+        <main class="video-section">
+            <div class="video-wrapper">
+                <video id="live-player" class="video-js vjs-default-skin vjs-big-play-centered" controls preload="auto">
+                    <p class="vjs-no-js">برای مشاهده ویدیو جاوااسکریپت را فعال کنید.</p>
+                </video>
+            
+                <img id="offline-gif" src="https://max3d.pl/uploads/monthly_2022_12/MetallicMealyAmoeba-size_restricted.gif.46953d3935a9924587b9dc7dd432c886.gif" alt="برفک تلویزیون">
+            
+                <div id="countdown-box" class="countdown-container" style="display: none;">
+                    <div class="countdown-title">شروع پخش زنده در:</div>
+                    <div class="countdown-timer">
+                        <div class="time-block"><span id="cd-seconds">00</span><label>ثانیه</label></div>
+                        <div class="time-block"><span id="cd-minutes">00</span><label>دقیقه</label></div>
+                        <div class="time-block"><span id="cd-hours">00</span><label>ساعت</label></div>
+                        <div class="time-block"><span id="cd-days">00</span><label>روز</label></div>
+                    </div>
+                </div>
+                <div id="live-status" class="status-tag offline">آفلاین</div>
+            </div>
+            
+            <div class="stream-details">
+                <div class="title-row">
+                    <h1 id="stream-title">در حال بارگذاری...</h1>
+                    
+                    <div class="stats-and-actions">
+                        <div class="view-count">
+                            <i class="fa-regular fa-eye"></i>
+                            <span id="live-viewers">0</span> بیننده
+                        </div>
+                        <button id="notify-btn" class="notify-button">
+                            <i class="fa-regular fa-bell"></i>
+                            <span>به من خبر بده</span>
+                        </button>
+                        <button id="like-btn" class="like-button">
+                            <span id="like-count">0</span>
+                        </button>
+                    </div>
+                </div>
+                <p id="stream-description">لطفاً منتظر بمانید...</p>
+            </div>
+        </main>
+
+        <aside class="chat-section">
+            <div class="chat-header">
+                <h3><i class="fa-regular fa-comments"></i> چت زنده (<span id="chat-online-count">0</span> آنلاین)</h3>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="system-msg" id="chat-system-status">در حال بررسی وضعیت حساب کاربری...</div>
+            </div>
+            
+            <form id="chat-form" class="chat-input-area" style="display: none;">
+                <input type="text" id="chat-input" placeholder="پیام خود را بنویسید..." required autocomplete="off">
+                <button type="submit"><i class="fa-regular fa-paper-plane"></i></button>
+            </form>
+        </aside>
+    </div>
+
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script type="module" src="js/live.js"></script>
+</body>
+</html>

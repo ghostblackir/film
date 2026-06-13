@@ -1,5 +1,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, getDoc, doc, updateDoc, increment, query, orderBy, limit, where, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+// اصلاح پکیج دیتابیس: متدهای کش آفلاین دقیقاً از همینجا ایمپورت شدند
+import { 
+    initializeFirestore, 
+    persistentLocalCache, 
+    persistentMultipleTabManager,
+    collection, addDoc, getDocs, getDoc, doc, updateDoc, increment, query, orderBy, limit, where, deleteDoc, onSnapshot, setDoc 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
 
@@ -14,15 +20,22 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+
+// راه‌اندازی دیتابیس با قابلیت حافظه کش آفلاین هوشمند (بدون تداخل و ارور)
+const db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+});
+
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const analytics = getAnalytics(app);
 
+// اکسپورت همزمان برای جلوگیری از ارور Missing Export در صفحات live.js و admin-live.js
 export { 
     db, 
     auth,
     googleProvider,
+    GoogleAuthProvider, // اضافه شدن کلاس اصلی برای کدهای احتمالی دیگر
     signInWithPopup,
     signOut,
     onAuthStateChanged,
@@ -39,5 +52,6 @@ export {
     limit, 
     where,
     deleteDoc,
-    onSnapshot
+    onSnapshot,
+    setDoc
 };

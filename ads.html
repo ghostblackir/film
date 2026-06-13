@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت تبلیغات - GHOST MOVIES</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* استایل اختصاصی و شیک برای پنل ادمین تبلیغات */
+        .admin-ads-body {
+            background-color: #0b0b0f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .admin-ads-card {
+            background: #151520;
+            border: 2px solid #8b5cf6;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 550px;
+        }
+        .admin-header-title {
+            color: #fff;
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .admin-header-title span { color: #8b5cf6; }
+        .admin-desc {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 15px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            color: #cbd5e0;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        .form-group input {
+            background: #0b0b0f;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.95rem;
+            direction: ltr; /* برای راحت وارد کردن لینک‌ها */
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #8b5cf6;
+            outline: none;
+        }
+        .btn-save-ad {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: #fff;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-save-ad:hover {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+            transform: translateY(-2px);
+        }
+        .status-msg {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .status-success { background: rgba(56, 161, 105, 0.2); color: #38a169; border: 1px solid #38a169; }
+        .status-error { background: rgba(229, 62, 98, 0.2); color: #e53e62; border: 1px solid #e53e62; }
+    </style>
+</head>
+<body class="admin-ads-body">
+
+    <div class="admin-ads-card">
+        <h1 class="admin-header-title"><i class="bi bi-megaphone-fill"></i> پنل مدیریت <span>تبلیغات ویدئویی</span></h1>
+        <p class="admin-desc">لینک ویدیو و آدرس سایت تبلیغ‌ دهنده را وارد کنید تا بلافاصله روی پلیر اصلی اعمال شود.</p>
+        
+        <form id="adAdminForm">
+            <div class="form-group">
+                <label for="adVideoUrl"><i class="bi bi-link-45deg"></i> لینک مستقیم ویدیو تبلیغاتی (MP4):</label>
+                <input type="url" id="adVideoUrl" placeholder="https://example.com/ad.mp4" required>
+            </div>
+
+            <div class="form-group">
+                <label for="adTargetUrl"><i class="bi bi-box-arrow-up-right"></i> لینک وب‌سایت هدف (کلیک بر روی تبلیغ):</label>
+                <input type="url" id="adTargetUrl" placeholder="https://advertiser.com" required>
+            </div>
+
+            <button type="submit" class="btn-save-ad" id="submitBtn">
+                <i class="bi bi-cloud-arrow-up-fill"></i> بروزرسانی و تایید تبلیغ
+            </button>
+        </form>
+
+        <div id="statusBox" class="status-msg hidden"></div>
+    </div>
+
+    <script type="module">
+        import { db, doc, setDoc, getDoc } from './js/firebase.js';
+
+        const form = document.getElementById('adAdminForm');
+        const videoInput = document.getElementById('adVideoUrl');
+        const targetInput = document.getElementById('adTargetUrl');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // 📌 ساخت کادر اختصاصی هوشمند و شیک برای جایگزینی آلرت‌ها و استاتوس باکس قدیمی
+        function showCustomAlert(title, message, isSuccess = false) {
+            let alertOverlay = document.getElementById('customAlertOverlay');
+            if (!alertOverlay) {
+                alertOverlay = document.createElement('div');
+                alertOverlay.id = 'customAlertOverlay';
+                alertOverlay.innerHTML = `
+                    <div class="custom-alert-card">
+                        <div class="custom-alert-icon"></div>
+                        <h3 id="customAlertTitle"></h3>
+                        <p id="customAlertMessage"></p>
+                        <button id="customAlertCloseBtn">فهمیدم</button>
+                    </div>
+                `;
+                document.body.appendChild(alertOverlay);
+                
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    #customAlertOverlay {
+                        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                        background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+                        display: flex; justify-content: center; align-items: center; z-index: 999999;
+                    }
+                    .custom-alert-card {
+                        background: #151520; border: 2px solid #8b5cf6;
+                        width: 90%; max-width: 400px; padding: 30px; border-radius: 12px;
+                        text-align: center; color: #fff; box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+                    }
+                    .custom-alert-icon { font-size: 2.5rem; margin-bottom: 12px; }
+                    .custom-alert-card h3 { font-size: 1.3rem; margin-bottom: 10px; font-weight: bold; }
+                    .custom-alert-card p { font-size: 0.95rem; color: #a0aec0; line-height: 1.6; margin-bottom: 25px; }
+                    #customAlertCloseBtn {
+                        background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; border: none;
+                        padding: 10px 30px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.2s;
+                    }
+                    #customAlertCloseBtn:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
+                `;
+                document.head.appendChild(style);
+            }
+
+            document.getElementById('customAlertTitle').textContent = title;
+            document.getElementById('customAlertMessage').textContent = message;
+            
+            const iconEl = alertOverlay.querySelector('.custom-alert-icon');
+            iconEl.innerHTML = isSuccess ? '✅' : '⚠️';
+            alertOverlay.querySelector('.custom-alert-card').style.borderColor = isSuccess ? '#38a169' : '#e53e62';
+            
+            alertOverlay.style.display = 'flex';
+            document.getElementById('customAlertCloseBtn').onclick = () => {
+                alertOverlay.style.display = 'none';
+            };
+        }
+
+        // لود کردن آخرین وضعیت تبلیغ ذخیره شده به محض باز شدن صفحه
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const adDocRef = doc(db, 'settings', 'current_ad');
+                const adSnap = await getDoc(adDocRef);
+                if (adSnap.exists()) {
+                    const data = adSnap.data();
+                    videoInput.value = data.videoUrl || '';
+                    targetInput.value = data.targetUrl || '';
+                }
+            } catch (err) {
+                console.error("خطا در واکشی اطلاعات اولیه تبلیغات: ", err);
+                showCustomAlert('خطای ارتباط', 'عدم توانایی در دریافت اطلاعات قبلی از دیتابیس. قوانین فایربیس را بررسی کنید.');
+            }
+        });
+
+        // ذخیره اطلاعات جدید در فایربیس با مدیریت خطا و دکمه لودینگ
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i class="bi bi-hourglass-split"></i> در حال بروزرسانی سرور...`;
+            
+            const videoUrl = videoInput.value.trim();
+            const targetUrl = targetInput.value.trim();
+
+            try {
+                // ذخیره مستقیم روی دیتابیس سرور فایربیس
+                await setDoc(doc(db, 'settings', 'current_ad'), {
+                    videoUrl: videoUrl,
+                    targetUrl: targetUrl,
+                    updatedAt: new Date()
+                });
+
+                showCustomAlert('عملیات موفقیت‌آمیز', '🚀 تبلیغات با موفقیت بروزرسانی شد و بلافاصله روی پلیر اصلی کل سایت اعمال گردید!', true);
+            } catch (error) {
+                console.error("خطا در ذخیره سازی فایربیس: ", error);
+                showCustomAlert('خطای دسترسی سرور', '❌ ذخیره نشد! دیتابیس اجازه نوشتن نمی‌دهد. لطفاً تب Rules را در فایربیس بررسی کنید.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="bi bi-cloud-arrow-up-fill"></i> بروزرسانی و تایید تبلیغ`;
+            }
+        });
+    </script>
+</body>
+</html>

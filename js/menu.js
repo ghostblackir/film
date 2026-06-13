@@ -6,7 +6,9 @@ import {
     onAuthStateChanged,
     db,
     doc,
-    getDoc
+    getDoc,
+    setDoc,
+    updateDoc
 } from './firebase.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     handleUserAuth();
 });
 
-// مدیریت باز و بسته شدن منو
 function initSidebarMenu() {
     const menuToggleBtn = document.getElementById('menuToggleBtn');
     const closeMenuBtn = document.getElementById('closeMenuBtn');
@@ -38,66 +39,111 @@ function initSidebarMenu() {
     if(sidebarOverlay) sidebarOverlay.addEventListener('click', closeMenu);
 }
 
-// مدیریت ورود / خروج و بررسی نوع اشتراک در فایربیس
 function handleUserAuth() {
     const profileSection = document.getElementById('userProfileSection');
     if (!profileSection) return;
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            // کاربر لاگین شده است -> چک کردن دیتابیس برای فیلد اشتراک (مثلاً در کالکشن users)
             let subscriptionType = 'رایگان'; 
             let isVip = false;
+            let userCoins = 150; // مقدار پیش‌فرض فرضی
 
             try {
                 const userDocRef = doc(db, 'users', user.uid);
-                const userDoc = await getDoc(userDocRef);
+                let userDoc = await getDoc(userDocRef);
                 
-                if (userDoc.exists() && userDoc.data().access === 'vip') {
-                    subscriptionType = 'VIP 👑';
-                    isVip = true;
+                // اگر کاربر جدید است و سندی ندارد، فیلد سکه اولیه (150) را برایش بساز
+                if (!userDoc.exists()) {
+                    await setDoc(userDocRef, {
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName || 'کاربر جدید',
+                        photoURL: user.photoURL || '',
+                        access: 'free',
+                        coins: 150, // ۱۵۰ سکه اولیه برای کاربران رایگان
+                        createdAt: new Date().toISOString()
+                    });
+                    userDoc = await getDoc(userDocRef);
+                }
+
+                const userData = userDoc.data();
+                // خواندن مقدار واقعی سکه از دیتابیس
+                userCoins = userData.coins !== undefined ? userData.coins : 150;
+
+                // بررسی تاریخ انقضای اشتراک VIP
+                if (userData.access === 'vip') {
+                    const now = new Date();
+                    const expireDate = userData.vipExpireAt ? new Date(userData.vipExpireAt) : null;
+
+                    if (expireDate && now > expireDate) {
+                        // اشتراک منقضی شده است
+                        await updateDoc(userDocRef, {
+                            access: 'free',
+                            role: 'member'
+                        });
+                        subscriptionType = 'رایگان (پایان اشتراک)';
+                        isVip = false;
+                    } else {
+                        subscriptionType = 'VIP 👑';
+                        isVip = true;
+                    }
                 }
             } catch (error) {
-                console.error("خطا در دریافت وضعیت اشتراک کاربر:", error);
+                console.error("خطا در دریافت اطلاعات کاربر:", error);
             }
 
-            // رندر کردن اطلاعات کاربر داخل منو
+            // رندر پروفایل همراه با بخش سکه آنلاین
             profileSection.innerHTML = `
                 <div class="user-profile-card">
                     <div class="user-info-flex">
                         <img src="${user.photoURL || 'https://via.placeholder.com/40'}" class="user-avatar ${isVip ? 'vip-border' : ''}" alt="پروفایل">
-                        <div>
+                        <div style="flex-grow: 1;">
                             <div class="user-name">${user.displayName || 'کاربر مهمان'}</div>
-                            <span class="user-badge ${isVip ? 'badge-vip' : 'badge-free'}">${subscriptionType}</span>
+                            <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                                <span class="user-badge ${isVip ? 'badge-vip' : 'badge-free'}">${subscriptionType}</span>
+                                <span class="user-coins-badge" style="background: #2d3748; color: #ffd700; padding: 2px 8px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: flex; align-items: center; gap: 4px; border: 1px solid #ffd70033;">
+                                    <i class="bi bi-coin" style="color: #ffd700;"></i> ${userCoins}
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <button id="logoutBtn" class="btn-logout"><i class="bi bi-box-arrow-right"></i> خروج از حساب</button>
                 </div>
             `;
 
-            // ست کردن رویداد خروج
             document.getElementById('logoutBtn').addEventListener('click', () => {
                 signOut(auth).then(() => location.reload());
             });
 
         } else {
-            // کاربر ثبت نام نکرده یا لاگین نیست -> نمایش دکمه ورود با گوگل
             profileSection.innerHTML = `
                 <button id="googleLoginBtn" class="btn-google-login">
                     <i class="bi bi-google"></i> ورود / ثبت نام با گوگل
                 </button>
             `;
 
-            // ست کردن رویداد ورود با گوگل
             document.getElementById('googleLoginBtn').addEventListener('click', () => {
                 signInWithPopup(auth, googleProvider)
-                    .then((result) => {
-                        console.log("ورود موفقیت‌آمیز:", result.user);
+                    .then(async (result) => {
+                        const userDocRef = doc(db, 'users', result.user.uid);
+                        const userDoc = await getDoc(userDocRef);
+                        if (!userDoc.exists()) {
+                            await setDoc(userDocRef, {
+                                uid: result.user.uid,
+                                email: result.user.email,
+                                displayName: result.user.displayName || 'کاربر جدید',
+                                photoURL: result.user.photoURL || '',
+                                access: 'free',
+                                coins: 150, // سکه برای ورود اول
+                                createdAt: new Date().toISOString()
+                            });
+                        }
                         location.reload();
                     })
                     .catch((error) => {
                         console.error("خطا در ورود با گوگل:", error);
-                        alert("خطایی در هنگام ورود با گوگل رخ داد. لطفاً دوباره تلاش کنید.");
+                        alert("خطایی در هنگام ورود رخ داد.");
                     });
             });
         }
