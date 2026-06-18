@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +17,7 @@
             min-height: 100vh;
             padding: 20px;
         }
+
         .admin-ads-card {
             background: #151520;
             border: 2px solid #8b5cf6;
@@ -25,6 +27,7 @@
             width: 100%;
             max-width: 550px;
         }
+
         .admin-header-title {
             color: #fff;
             font-size: 1.6rem;
@@ -33,39 +36,49 @@
             align-items: center;
             gap: 10px;
         }
-        .admin-header-title span { color: #8b5cf6; }
+
+        .admin-header-title span {
+            color: #8b5cf6;
+        }
+
         .admin-desc {
             color: #a0aec0;
             font-size: 0.9rem;
             margin-bottom: 25px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding-bottom: 15px;
         }
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
             margin-bottom: 20px;
         }
+
         .form-group label {
             color: #cbd5e0;
             font-size: 0.9rem;
             font-weight: bold;
         }
+
         .form-group input {
             background: #0b0b0f;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 12px 15px;
             border-radius: 8px;
             color: #fff;
             font-size: 0.95rem;
-            direction: ltr; /* برای راحت وارد کردن لینک‌ها */
+            direction: ltr;
+            /* برای راحت وارد کردن لینک‌ها */
             transition: border-color 0.3s;
         }
+
         .form-group input:focus {
             border-color: #8b5cf6;
             outline: none;
         }
+
         .btn-save-ad {
             background: linear-gradient(135deg, #8b5cf6, #6d28d9);
             color: #fff;
@@ -82,10 +95,12 @@
             align-items: center;
             gap: 10px;
         }
+
         .btn-save-ad:hover {
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
             transform: translateY(-2px);
         }
+
         .status-msg {
             margin-top: 15px;
             padding: 10px;
@@ -93,16 +108,27 @@
             font-size: 0.9rem;
             text-align: center;
         }
-        .status-success { background: rgba(56, 161, 105, 0.2); color: #38a169; border: 1px solid #38a169; }
-        .status-error { background: rgba(229, 62, 98, 0.2); color: #e53e62; border: 1px solid #e53e62; }
+
+        .status-success {
+            background: rgba(56, 161, 105, 0.2);
+            color: #38a169;
+            border: 1px solid #38a169;
+        }
+
+        .status-error {
+            background: rgba(229, 62, 98, 0.2);
+            color: #e53e62;
+            border: 1px solid #e53e62;
+        }
     </style>
 </head>
+
 <body class="admin-ads-body">
 
     <div class="admin-ads-card">
         <h1 class="admin-header-title"><i class="bi bi-megaphone-fill"></i> پنل مدیریت <span>تبلیغات ویدئویی</span></h1>
         <p class="admin-desc">لینک ویدیو و آدرس سایت تبلیغ‌ دهنده را وارد کنید تا بلافاصله روی پلیر اصلی اعمال شود.</p>
-        
+
         <form id="adAdminForm">
             <div class="form-group">
                 <label for="adVideoUrl"><i class="bi bi-link-45deg"></i> لینک مستقیم ویدیو تبلیغاتی (MP4):</label>
@@ -110,12 +136,17 @@
             </div>
 
             <div class="form-group">
-                <label for="adTargetUrl"><i class="bi bi-box-arrow-up-right"></i> لینک وب‌سایت هدف (کلیک بر روی تبلیغ):</label>
+                <label for="adTargetUrl"><i class="bi bi-box-arrow-up-right"></i> لینک وب‌سایت هدف (کلیک بر روی
+                    تبلیغ):</label>
                 <input type="url" id="adTargetUrl" placeholder="https://advertiser.com" required>
             </div>
 
             <button type="submit" class="btn-save-ad" id="submitBtn">
                 <i class="bi bi-cloud-arrow-up-fill"></i> بروزرسانی و تایید تبلیغ
+            </button>
+
+            <button type="button" class="btn-reset-ad" id="resetBtn">
+                <i class="bi bi-trash-fill"></i> حذف و ریست تبلیغ
             </button>
         </form>
 
@@ -145,7 +176,7 @@
                     </div>
                 `;
                 document.body.appendChild(alertOverlay);
-                
+
                 const style = document.createElement('style');
                 style.innerHTML = `
                     #customAlertOverlay {
@@ -172,11 +203,11 @@
 
             document.getElementById('customAlertTitle').textContent = title;
             document.getElementById('customAlertMessage').textContent = message;
-            
+
             const iconEl = alertOverlay.querySelector('.custom-alert-icon');
             iconEl.innerHTML = isSuccess ? '✅' : '⚠️';
             alertOverlay.querySelector('.custom-alert-card').style.borderColor = isSuccess ? '#38a169' : '#e53e62';
-            
+
             alertOverlay.style.display = 'flex';
             document.getElementById('customAlertCloseBtn').onclick = () => {
                 alertOverlay.style.display = 'none';
@@ -202,10 +233,10 @@
         // ذخیره اطلاعات جدید در فایربیس با مدیریت خطا و دکمه لودینگ
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             submitBtn.disabled = true;
             submitBtn.innerHTML = `<i class="bi bi-hourglass-split"></i> در حال بروزرسانی سرور...`;
-            
+
             const videoUrl = videoInput.value.trim();
             const targetUrl = targetInput.value.trim();
 
@@ -226,6 +257,37 @@
                 submitBtn.innerHTML = `<i class="bi bi-cloud-arrow-up-fill"></i> بروزرسانی و تایید تبلیغ`;
             }
         });
+        // اضافه کردن قابلیت ریست تبلیغ
+        document.getElementById('resetBtn').addEventListener('click', async () => {
+            const confirmReset = confirm("آیا از حذف تبلیغ و خالی کردن تنظیمات اطمینان دارید؟");
+            if (!confirmReset) return;
+
+            const resetBtn = document.getElementById('resetBtn');
+            resetBtn.disabled = true;
+            resetBtn.innerHTML = `<i class="bi bi-hourglass-split"></i> در حال حذف...`;
+
+            try {
+                // خالی کردن دیتابیس در فایربیس
+                await setDoc(doc(db, 'settings', 'current_ad'), {
+                    videoUrl: '',
+                    targetUrl: '',
+                    updatedAt: new Date()
+                });
+
+                // خالی کردن اینپوت‌ها در ظاهر سایت
+                videoInput.value = '';
+                targetInput.value = '';
+
+                showCustomAlert('حذف موفقیت‌آمیز', 'تبلیغ با موفقیت غیرفعال و مقادیر ریست شدند.', true);
+            } catch (error) {
+                console.error("خطا در ریست کردن: ", error);
+                showCustomAlert('خطا', 'متاسفانه عملیات ریست انجام نشد.');
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.innerHTML = `<i class="bi bi-trash-fill"></i> حذف و ریست تبلیغ`;
+            }
+        });
     </script>
 </body>
+
 </html>

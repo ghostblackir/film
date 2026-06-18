@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 12;
 let currentPage = 1;
 
 let allMovies = [];        
@@ -113,10 +113,22 @@ function renderMoviesGrid(moviesList, gridId) {
         return;
     }
 
+    const now = new Date().getTime();
+
     moviesList.forEach(movie => {
+        // 🌟 بررسی هوشمند: اگر فیلم رایگان است ولی تایمر آن به پایان رسیده، در فرانت به VIP تبدیلش کن
+        let currentAccess = movie.access;
+        if (currentAccess === 'free' && movie.freeUntil) {
+            const targetTime = new Date(movie.freeUntil).getTime();
+            if (targetTime <= now) {
+                currentAccess = 'vip'; // سوییچ آنی وضعیت فیلم به VIP
+            }
+        }
+
         const card = document.createElement('a');
         
-        if (movie.access === 'vip') {
+        // تنظیم لینک و کلاس‌ها بر اساس وضعیت واقعی و نهایی فیلم
+        if (currentAccess === 'vip') {
             card.href = 'vip.html';
             card.className = 'movie-card vip-locked-card';
         } else {
@@ -124,11 +136,23 @@ function renderMoviesGrid(moviesList, gridId) {
             card.className = 'movie-card';
         }
         
-        const vipBadgeHTML = movie.access === 'vip' ? `<div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>` : '';
+        const vipBadgeHTML = currentAccess === 'vip' ? `<div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>` : '';
+
+        // ⏳ بررسی وضعیت نمایش تایمر زنده (فقط برای فیلم‌هایی که هنوز رایگان هستند و زمان دارند)
+        let timerHTML = '';
+        if (currentAccess === 'free' && movie.freeUntil) {
+            timerHTML = `
+                <div class="card-timer-badge" data-countdown="${movie.freeUntil}">
+                    <i class="bi bi-clock-history"></i>
+                    <span class="countdown-text">--:--:--</span>
+                </div>
+            `;
+        }
 
         card.innerHTML = `
             <div class="card-img-wrapper">
                 ${vipBadgeHTML}
+                ${timerHTML}
                 <img data-src="${movie.thumbnail}" alt="${movie.title}" class="lazy-img">
                 <span class="card-duration">${movie.duration}</span>
             </div>
@@ -136,7 +160,9 @@ function renderMoviesGrid(moviesList, gridId) {
                 <h4 class="card-title">${movie.title}</h4>
                 <div class="card-meta">
                     <span><i class="bi bi-eye-fill" style="color:var(--purple-primary); margin-left:4px;"></i>${movie.views || 0} بازدید</span>
-                    ${movie.access === 'vip' ? '<span style="color:#ffd700; font-size:0.8rem; font-weight:bold; margin-right:auto;"><i class="bi bi-lock-fill"></i> ویژه</span>' : ''}
+                    <span class="vip-status-area" style="${currentAccess === 'vip' ? '' : 'display:none;'} color:#ffd700; font-size:0.8rem; font-weight:bold; margin-right:auto;">
+                        <i class="bi bi-lock-fill"></i> ویژه
+                    </span>
                 </div>
             </div>
         `;
@@ -341,3 +367,52 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 });
+
+// 🌟 موتور محرک و پردازشگر مرکزی تایمرهای زنده سایت GHOST
+setInterval(() => {
+    const activeCountdowns = document.querySelectorAll('[data-countdown]');
+    const now = new Date().getTime();
+    let needReRender = false;
+
+    activeCountdowns.forEach(badge => {
+        const targetDateStr = badge.getAttribute('data-countdown');
+        const targetTime = new Date(targetDateStr).getTime();
+        const timeLeft = targetTime - now;
+
+        const textElement = badge.querySelector('.countdown-text');
+
+        if (timeLeft <= 0) {
+            // زمان تمام شد! نیاز به رندر مجدد گریدها داریم تا قفل VIP اعمال شود
+            needReRender = true;
+        } else {
+            // محاسبه دقیق زمان باقی‌مانده
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+            const pad = (num) => String(num).padStart(2, '0');
+
+            // نمایش خروجی تایمر
+            if (days > 0) {
+                if (textElement) textElement.innerText = `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            } else {
+                if (textElement) textElement.innerText = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            }
+        }
+    });
+
+    // اگر زمان فیلمی صفر شد، گریدها رو با دیتای موجود دوباره رندر کن تا قفل فعال بشه
+    if (needReRender && typeof allMovies !== 'undefined' && allMovies.length > 0) {
+        const homeMovies = allMovies.filter(movie => movie.access !== 'shorts');
+        
+        // رندر مجدد سکشن‌های اصلی سایت با وضعیت جدید قفل‌ها
+        if (document.getElementById('latestMoviesGrid')) {
+            renderMoviesGrid(homeMovies.slice(0, ITEMS_PER_PAGE), 'latestMoviesGrid');
+        }
+        if (document.getElementById('popularMoviesGrid')) {
+            const popular = [...homeMovies].sort((a, b) => (b.views || 0) - (a.views || 0));
+            renderMoviesGrid(popular.slice(0, 4), 'popularMoviesGrid');
+        }
+    }
+}, 1000);

@@ -442,3 +442,61 @@ body {
     color: #000;
     box-shadow: 0 0 15px var(--accent-blue);
 }
+
+/* اصلاحات رسپانسیو برای موبایل */
+@media (max-width: 991px) {
+    /* تنظیم کل صفحه برای جلوگیری از اسکرول افقی */
+    .live-wrapper {
+        height: auto;
+        padding: 10px;
+    }
+
+    /* تبدیل ردیف عنوان به حالت عمودی */
+    .title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    /* تنظیم دکمه‌ها برای عرض کامل در موبایل */
+    .stats-and-actions {
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0px;
+    }
+
+    /* کوچک کردن باکس شمارشگر برای جا شدن در صفحه موبایل */
+    .countdown-container {
+        padding: 15px;
+        width: 90%;
+    }
+    
+    .countdown-timer {
+        gap: 8px;
+    }
+
+    .time-block span {
+        font-size: 18px;
+    }
+    
+    .time-block label {
+        font-size: 8px;
+    }
+
+    /* مدیریت چت‌باکس در موبایل */
+    .chat-section {
+        height: 350px; /* کاهش ارتفاع در موبایل */
+    }
+}
+
+/* مخفی کردن نوار پیشرفت و زمان از پلیر Video.js */
+.video-js .vjs-progress-control,
+.video-js .vjs-time-control,
+.video-js .vjs-remaining-time {
+    display: none !important;
+}
+/* در فایل live.css */
+.chat-input-area.hidden {
+    display: none !important;
+    pointer-events: none; /* غیرفعال کردن کلیک */
+}

@@ -29,7 +29,7 @@ const streamDocRef = doc(db, "streams", "current");
 
 let currentUser = null;
 let isBanned = false;
-let countdownInterval = null; 
+let countdownInterval = null;
 let notificationTriggered = false; // برای اینکه نوتیفیکیشن فقط یکبار بوق بزند
 const ADMIN_EMAIL = "aqayghost@gmail.com";
 
@@ -98,7 +98,7 @@ onSnapshot(streamDocRef, async (docSnap) => {
     if (docSnap.exists()) {
         const data = docSnap.data();
         streamTitle.innerText = data.title || "بدون عنوان";
-        
+
         // پاک کردن تایمر قبلی در صورت وجود تغییر در دیتابیس برای جلوگیری از تداخل
         if (countdownInterval) clearInterval(countdownInterval);
 
@@ -115,7 +115,7 @@ onSnapshot(streamDocRef, async (docSnap) => {
 
             // فرمت کردن دستی زمان برای کپشن زیر ویدیو بدون بهم ریختگی
             const sObj = new Date(targetTime);
-            const formattedTime = `${sObj.getFullYear()}/${String(sObj.getMonth() + 1).padStart(2,'0')}/${String(sObj.getDate()).padStart(2,'0')} ساعت ${String(sObj.getHours() % 12 || 12).padStart(2,'0')}:${String(sObj.getMinutes()).padStart(2,'0')} ${sObj.getHours() >= 12 ? 'PM' : 'AM'}`;
+            const formattedTime = `${sObj.getFullYear()}/${String(sObj.getMonth() + 1).padStart(2, '0')}/${String(sObj.getDate()).padStart(2, '0')} ساعت ${String(sObj.getHours() % 12 || 12).padStart(2, '0')}:${String(sObj.getMinutes()).padStart(2, '0')} ${sObj.getHours() >= 12 ? 'PM' : 'AM'}`;
             streamDescription.innerText = `زمان پخش برنامه‌ریزی شده: ${formattedTime} \n ${data.description || ''}`;
 
             // راه‌اندازی تایمر معکوس ثانیه‌ای
@@ -126,7 +126,7 @@ onSnapshot(streamDocRef, async (docSnap) => {
                     // 🎉 زمان انتظار به پایان رسید!
                     clearInterval(countdownInterval);
                     countdownBox.style.display = "none";
-                    
+
                     if (localStorage.getItem('live_notify_enabled') === 'true' && !notificationTriggered) {
                         new Notification("🔴 پخش زنده شروع شد!", { body: data.title });
                         notificationTriggered = true;
@@ -148,7 +148,7 @@ onSnapshot(streamDocRef, async (docSnap) => {
             }, 1000);
 
             disableLikeButton();
-        } 
+        }
         // 🟢 ب) اگر ادمین دکمه لایو فوری را زده یا زمان انتظار به پایان رسیده باشد (حالت زنده)
         else if (data.isLive === true || (targetTime && now >= targetTime)) {
             countdownBox.style.display = "none";
@@ -165,20 +165,33 @@ onSnapshot(streamDocRef, async (docSnap) => {
 
                 if (videoUrl.includes('.mp4') || videoUrl.endsWith('.mp4')) {
                     videoType = 'video/mp4'; // سوییچ به فرمت mp4
-                    
+
                     // تغییر متن وضعیت به "پخش ویدیو" برای قشنگی بیشتر (آپشنال)
-                    liveStatus.innerText = "پخش ویدیو"; 
+                    liveStatus.innerText = "پخش ویدیو";
                 } else {
                     liveStatus.innerText = "زنده";
                 }
 
                 // تزریق لینک و فرمت درست به ویدیو جی‌اس
                 player.src({ src: data.hlsUrl, type: videoType });
-                player.play().catch(() => {});
+                updateChatAvailability(true, currentUser);
+                player.play().catch(() => { });
+                player.off('ended');
+
+                player.on('ended', () => {
+                    playerDoc.style.display = "none";      
+                    offlineGif.style.display = "block";    
+                    liveStatus.innerText = "آفلاین";       
+                    liveStatus.className = "status-tag offline";
+                    updateChatAvailability(false, currentUser);
+                    
+                    
+                    updateChatAvailability(false, currentUser); 
+                });
             }
 
             enableLikeButton(data.likes || 0);
-        } 
+        }
         // 🔴 ج) حالت کاملاً آفلاین معمولی (بدون زمان‌بندی قبلی)
         else {
             countdownBox.style.display = "none";
@@ -188,6 +201,7 @@ onSnapshot(streamDocRef, async (docSnap) => {
             liveStatus.innerText = "آفلاین";
             liveStatus.className = "status-tag offline";
             streamDescription.innerText = data.description || "";
+            updateChatAvailability(false, currentUser);
             disableLikeButton();
         }
     }
@@ -210,7 +224,7 @@ async function enableLikeButton(totalLikes) {
             const likeSnap = await getDoc(userLikeRef).catch(() => {
                 console.log("دیتابیس در حالت آفلاین است؛ لود از کش مرورگر...");
             });
-            
+
             if (likeSnap && likeSnap.exists()) {
                 likeBtn.disabled = true;
                 likeBtn.classList.add('liked');
@@ -248,11 +262,34 @@ likeBtn.addEventListener('click', async () => {
 });
 
 chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); const msgText = chatInput.value.trim(); if (!msgText || !currentUser || isBanned) return;
-    try {
-        await addDoc(collection(db, "streams", "current", "chat"), { uid: currentUser.uid, user: currentUser.displayName, avatar: currentUser.photoURL, email: currentUser.email, text: msgText, timestamp: new Date() });
-        chatInput.value = "";
-    } catch (error) { console.error(error); }
+    e.preventDefault();
+
+    // ⛔ بررسی امنیتی قبل از ارسال
+    // اگر کاربر لاگین نیست یا استریم آفلاین است، اجازه ارسال نده
+    if (!currentUser) {
+        alert("برای ارسال پیام ابتدا باید وارد حساب کاربری خود شوید.");
+        return; 
+    }
+    
+    // فرض می‌کنیم یک متغیر سراسری یا روشی برای چک کردن وضعیت لایو دارید
+    // (اگر ندارید، می‌توانید همان وضعیت دیتابیس را چک کنید)
+    if (liveStatus.innerText === "آفلاین") {
+        alert("در حال حاضر چت بسته است.");
+        return;
+    }
+
+    const text = chatInput.value.trim();
+    if (text === "") return;
+
+    // ارسال به دیتابیس...
+    await addDoc(collection(db, "streams", "current", "chat"), {
+        text: text,
+        user: currentUser.displayName,
+        avatar: currentUser.photoURL,
+        timestamp: new Date()
+    });
+
+    chatInput.value = "";
 });
 
 onSnapshot(collection(db, "online_users"), (snapshot) => { const count = snapshot.size; liveViewers.innerText = count; chatOnlineCount.innerText = count; });
@@ -268,3 +305,26 @@ onSnapshot(chatQuery, (querySnapshot) => {
     }); chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 async function checkIfUserLiked() { if (!currentUser) return; const docSnap = await getDoc(doc(db, "streams", "current", "liked_users", currentUser.uid)); if (docSnap.exists()) { likeBtn.classList.add('liked'); likeBtn.disabled = true; } }
+
+function updateChatAvailability(isLive, user) {
+    const chatForm = document.getElementById('chat-form');
+    const chatSystemStatus = document.getElementById('chat-system-status');
+
+    if (!isLive) {
+        // اگر لایو نیست، چت کلاً مخفی شود
+        chatForm.style.display = "none";
+        chatSystemStatus.innerHTML = `<span style="color: #8a8ab0;">استریم در حال حاضر آفلاین است.</span>`;
+    } else if (!user) {
+        // اگر لایو است ولی کاربر وارد نشده
+        chatForm.style.display = "none";
+        chatSystemStatus.innerHTML = `<span style="color: #ff2a74;">برای چت کردن <button onclick="window.location.href='/login'" style="background:none; border:none; color:white; text-decoration:underline; cursor:pointer;">وارد شوید</button>.</span>`;
+    } else if (isBanned) {
+        // اگر کاربر بن شده
+        chatForm.style.display = "none";
+        chatSystemStatus.innerHTML = `<span style="color: #ef4444;">حساب کاربری شما مسدود شده است.</span>`;
+    } else {
+        // اگر لایو است و کاربر لاگین است و بن نیست
+        chatForm.style.display = "flex";
+        chatSystemStatus.innerText = "به چت زنده خوش آمدید!";
+    }
+}

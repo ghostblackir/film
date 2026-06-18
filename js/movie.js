@@ -1,6 +1,6 @@
 import { db, auth, doc, getDoc, updateDoc, increment, collection, getDocs, addDoc, query, where, limit, orderBy } from './firebase.js';
 
-let activeReplyCommentId = null; 
+let activeReplyCommentId = null;
 let allSimilarMovies = [];
 let displayedSimilarCount = 5;
 
@@ -13,7 +13,7 @@ let movieDataGlobal = null; // ذخیره اطلاعات فیلم برای اس�
 document.addEventListener('DOMContentLoaded', () => {
     loadMovieDetails();
     setupEmojiPicker();
-    setupModalActions(); 
+    setupModalActions();
 });
 
 // 📌 کادر اختصاصی شیک برای جایگزینی آلرت‌ها
@@ -31,7 +31,7 @@ function showCustomAlert(title, message, isSuccess = false) {
             </div>
         `;
         document.body.appendChild(alertOverlay);
-        
+
         const style = document.createElement('style');
         style.innerHTML = `
             #customAlertOverlay {
@@ -57,7 +57,7 @@ function showCustomAlert(title, message, isSuccess = false) {
 
     document.getElementById('customAlertTitle').textContent = title;
     document.getElementById('customAlertMessage').textContent = message;
-    
+
     const iconEl = alertOverlay.querySelector('.custom-alert-icon');
     iconEl.innerHTML = isSuccess ? '✅' : '⚠️';
     alertOverlay.style.display = 'flex';
@@ -90,7 +90,7 @@ async function loadMovieDetails() {
         if (!sessionStorage.getItem(`viewed_${movieId}`)) {
             await updateDoc(movieDocRef, { views: increment(1) });
             sessionStorage.setItem(`viewed_${movieId}`, 'true');
-            movieData.views = (movieData.views || 0) + 1; 
+            movieData.views = (movieData.views || 0) + 1;
         }
 
         // تغییر وضعیت UI از حالت لودینگ
@@ -172,11 +172,11 @@ async function handleAdvertisement(onAdComplete) {
         adVideo.src = adVideoSrc;
         adLinkBtn.href = adLinkHref || '#';
         adVideo.load();
-        
+
         // الان چون کاربر خودش روی دکمه پلی کلیک کرده، مرورگر با صدا اجازه پخش خودکار تبلیغ رو میده!
         adVideo.play().catch(err => console.log("خطا در پخش تبلیغ:", err));
 
-        let timeLeft = 10; 
+        let timeLeft = 10;
         adSkipBtn.disabled = true;
         adSkipBtn.style.cursor = 'not-allowed';
         adSkipBtn.style.opacity = '0.6';
@@ -200,7 +200,7 @@ async function handleAdvertisement(onAdComplete) {
             adVideo.pause();
             adOverlay.classList.add('hidden');
             isAdChecked = true; // ثبت وضعیت نمایش تبلیغ برای این سشن
-            onAdComplete(); 
+            onAdComplete();
         };
 
         adSkipBtn.onclick = closeAd;
@@ -214,13 +214,16 @@ async function handleAdvertisement(onAdComplete) {
 }
 
 /* ==========================================================================
-   ۲. کنترلر اختصاصی ویدیو پلیر (اصلاح شده برای دکمه پلی)
+   ۲. کنترلر اختصاصی ویدیو پلیر (اصلاح شده برای دکمه پلی و مدیریت تبلیغات)
    ========================================================================== */
-function initCustomPlayer(videoUrl, thumbnailUrl) {
+   function initCustomPlayer(videoUrl, thumbnailUrl) {
     const player = document.getElementById('ghostPlayer');
+    const recOverlay = document.getElementById('recommendationOverlay');
+    let countdownInterval;
+    const spinner = document.getElementById('videoSpinner');
     const source = document.getElementById('videoSource');
     const container = document.getElementById('customVideoPlayer');
-    
+
     const playPauseBtn = document.getElementById('playPauseBtn');
     const muteBtn = document.getElementById('muteBtn');
     const volumeSlider = document.getElementById('volumeSlider');
@@ -231,19 +234,75 @@ function initCustomPlayer(videoUrl, thumbnailUrl) {
     const totalDurationEl = document.getElementById('totalDuration');
     const fullscreenBtn = document.getElementById('fullscreenBtn');
 
+    // دسترسی به المان‌های تبلیغ برای چک کردن وضعیت تفکیک شده
+    const adOverlay = document.getElementById('adOverlay');
+    const adVideo = document.getElementById('adVideo');
+
     source.src = videoUrl;
-    if(thumbnailUrl) player.poster = thumbnailUrl;
+    if (thumbnailUrl) player.poster = thumbnailUrl;
     player.load();
 
-    // 🌟 ایجاد رویداد کلیک روی پلیر یا دکمه پلی اصلی
+    // ۱. هندل کردن مستقیم خطا
+    player.addEventListener('error', (e) => {
+        handleVideoError();
+    });
+
+    // ۲. هندل کردن زمانی که ویدیو برای مدت طولانی متوقف می‌ماند
+    player.addEventListener('stalled', () => {
+        setTimeout(() => {
+            if (player.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+                handleVideoError();
+            }
+        }, 5000);
+    });
+
+    player.addEventListener('ended', () => {
+        recOverlay.classList.remove('hidden');
+        let timeLeft = 5;
+        const countdownEl = document.getElementById('countdown');
+
+        countdownInterval = setInterval(() => {
+            timeLeft--;
+            if (countdownEl) countdownEl.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                if (allSimilarMovies && allSimilarMovies.length > 0) {
+                    const nextMovie = allSimilarMovies[0];
+                    window.location.href = `movie.html?id=${nextMovie.id}`;
+                }
+            }
+        }, 1000);
+    });
+
+    // مدیریت بافرینگ ویدیو اصلی
+    player.addEventListener('waiting', () => { if(adOverlay.classList.contains('hidden')) spinner.classList.remove('hidden'); });
+    player.addEventListener('playing', () => { spinner.classList.add('hidden'); });
+    player.addEventListener('loadstart', () => { if(adOverlay.classList.contains('hidden')) spinner.classList.remove('hidden'); });
+    player.addEventListener('canplay', () => { spinner.classList.add('hidden'); });
+
+    // 🌟 رویداد کلیک روی خود ویدیوها (تشخیص خودکار تبلیغ یا ویدیو اصلی)
     player.onclick = handlePlayInteraction;
+    adVideo.onclick = handlePlayInteraction;
     playPauseBtn.onclick = handlePlayInteraction;
 
     function handlePlayInteraction() {
-        // اگر تبلیغ هنوز چک نشده، ابتدا تبلیغ را لود و پخش کن
+        // الف) اگر تبلیغ در حال نمایش است، دکمه پلی/استپ تبلیغ را کنترل کند
+        if (!adOverlay.classList.contains('hidden')) {
+            if (adVideo.paused) {
+                adVideo.play().then(() => {
+                    playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                }).catch(err => console.log(err));
+            } else {
+                adVideo.pause();
+                playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+            }
+            return;
+        }
+
+        // ب) اگر هنوز تبلیغ اصلاً چک یا باز نشده، آن را لود و اجرا کن
         if (!isAdChecked) {
             handleAdvertisement(() => {
-                // این بخش callback است؛ یعنی وقتی تبلیغ تمام شد یا رد شد اجرا می‌شود:
                 executeActualPlay();
             });
         } else {
@@ -253,47 +312,80 @@ function initCustomPlayer(videoUrl, thumbnailUrl) {
 
     function executeActualPlay() {
         if (player.paused) {
-            player.play().catch(err => console.log(err));
-            playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+            const playPromise = player.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+                }).catch(error => {
+                    console.log("پخش خودکار مسدود شد:", error);
+                });
+            }
         } else {
             player.pause();
             playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
         }
     }
 
+    // هماهنگ‌سازی آیکون دکمه پلی در صورتی که تبلیغ خودش تمام شد یا از جای دیگری Play شد
+    adVideo.addEventListener('play', () => { playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>'; });
+    adVideo.addEventListener('pause', () => { playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>'; });
+
     player.addEventListener('timeupdate', () => {
         const pct = (player.currentTime / player.duration) * 100;
-        if(progressBar) progressBar.style.width = `${pct}%`;
-        if(currentTimeEl) currentTimeEl.textContent = formatTime(player.currentTime);
+        if (progressBar) progressBar.style.width = `${pct}%`;
+        if (currentTimeEl) currentTimeEl.textContent = formatTime(player.currentTime);
     });
 
     player.addEventListener('loadedmetadata', () => {
-        if(totalDurationEl) totalDurationEl.textContent = formatTime(player.duration);
+        if (totalDurationEl) totalDurationEl.textContent = formatTime(player.duration);
     });
 
     player.addEventListener('progress', () => {
         if (player.buffered.length > 0 && player.duration > 0) {
             const bufferedEnd = player.buffered.end(player.buffered.length - 1);
-            if(bufferedBar) bufferedBar.style.width = `${(bufferedEnd / player.duration) * 100}%`;
+            if (bufferedBar) bufferedBar.style.width = `${(bufferedEnd / player.duration) * 100}%`;
         }
     });
 
-    if(progressContainer) {
+    if (progressContainer) {
         progressContainer.onclick = (e) => {
+            // نوار پیشرفت فقط برای ویدیو اصلی کار کند و روی تبلیغ قفل باشد
+            if (!adOverlay.classList.contains('hidden')) return;
             const rect = progressContainer.getBoundingClientRect();
             const pos = (e.clientX - rect.left) / rect.width;
             player.currentTime = pos * player.duration;
         };
     }
 
+    // 🌟 هوشمند کردن سیستم قطع و وصل کردن صدا (Mute) برای تبلیغ و ویدیو اصلی
     muteBtn.onclick = () => {
-        player.muted = !player.muted;
-        muteBtn.innerHTML = player.muted ? '<i class="bi bi-volume-mute-fill"></i>' : '<i class="bi bi-volume-up-fill"></i>';
+        if (!adOverlay.classList.contains('hidden')) {
+            // کنترل صدای تبلیغ
+            adVideo.muted = !adVideo.muted;
+            player.muted = adVideo.muted; // برای هماهنگی هر دو
+            muteBtn.innerHTML = adVideo.muted ? '<i class="bi bi-volume-mute-fill"></i>' : '<i class="bi bi-volume-up-fill"></i>';
+            volumeSlider.value = adVideo.muted ? 0 : adVideo.volume;
+        } else {
+            // کنترل صدای ویدیو اصلی
+            player.muted = !player.muted;
+            muteBtn.innerHTML = player.muted ? '<i class="bi bi-volume-mute-fill"></i>' : '<i class="bi bi-volume-up-fill"></i>';
+            volumeSlider.value = player.muted ? 0 : player.volume;
+        }
     };
 
+    // 🌟 هوشمند کردن تغییر اسلایدر صدا برای تبلیغ و ویدیو اصلی
     volumeSlider.oninput = (e) => {
-        player.volume = e.target.value;
-        player.muted = (e.target.value == 0);
+        const val = e.target.value;
+        if (!adOverlay.classList.contains('hidden')) {
+            adVideo.volume = val;
+            adVideo.muted = (val == 0);
+            player.volume = val;
+            player.muted = (val == 0);
+        } else {
+            player.volume = val;
+            player.muted = (val == 0);
+        }
+        muteBtn.innerHTML = (val == 0) ? '<i class="bi bi-volume-mute-fill"></i>' : '<i class="bi bi-volume-up-fill"></i>';
     };
 
     fullscreenBtn.onclick = () => {
@@ -330,7 +422,7 @@ function setupCoinDownloadTrigger() {
 
     downloadBtn.onclick = async (e) => {
         e.preventDefault();
-        const userId = getLoggedInUserId(); 
+        const userId = getLoggedInUserId();
         const modal = document.getElementById('downloadCoinModal');
         const modalCoinsStatus = document.getElementById('modalUserCoins');
 
@@ -361,7 +453,7 @@ function setupModalActions() {
     cancelBtn.onclick = () => { modal.style.display = "none"; };
 
     confirmBtn.onclick = async () => {
-        const userId = getLoggedInUserId(); 
+        const userId = getLoggedInUserId();
         confirmBtn.disabled = true;
         confirmBtn.textContent = "در حال کسر سکه...";
 
@@ -404,32 +496,32 @@ function setupModalActions() {
 /* ==========================================================================
    ۴. فرم نظرات هوشمند و ایموجی پیکر بدون باگ Vanilla
    ========================================================================== */
-   function setupEmojiPicker() {
+function setupEmojiPicker() {
     const textarea = document.getElementById('commentText');
     const emojiBtn = document.getElementById('emojiToggleBtn');
 
     if (!textarea || !emojiBtn) return;
 
     const emojis = [
-        '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🙂','🙃','😉','😌','😍','🥰',
-        '😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🤩','🥳','😏',
-        '😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😤','😠',
-        '😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓','🤗','🤔','🤭','🤫','🤥',
-        '😶','😐','😑','😬','🙄','😯','😦','😧','😮','😲','🥱','😴','🤤','😪','😵','🤐',
-        '🥴','🤢','🤮','🤧','😷','🤒','🤕','🤑','🤠','😈','👿','👹','👺','🤡','💩','👻',
-        '💀','☠️','👽','👾','🤖','🎃','😺','😸','😹','😻','😼','😽','🙀','😿','😾',
-        '👋','🤚','🖐️','✋','🖖','👌','🤏','✌️','🤞','🤟','🤘','🤙','👈','👉','👆','🖕',
-        '👇','☝️','👍','👎','✊','👊','🤛','🤜','👏','🙌','👐','🤲','🤝','🙏','✍️','💅',
-        '🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🧠','🦷','🦴','👀','👁️','👅','👄',
-        '💋','🩸','❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❤️‍🔥','❤️‍🩹','💖','💗',
-        '💓','💞','💕','💟','❣️','💘','💝','💟','🌟','⭐','✨','⚡','💥','🔥','🎉','🎈'
+        '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰',
+        '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
+        '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠',
+        '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥',
+        '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐',
+        '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻',
+        '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾',
+        '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕',
+        '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅',
+        '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷', '🦴', '👀', '👁️', '👅', '👄',
+        '💋', '🩸', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '💖', '💗',
+        '💓', '💞', '💕', '💟', '❣️', '💘', '💝', '💟', '🌟', '⭐', '✨', '⚡', '💥', '🔥', '🎉', '🎈'
     ];
 
     let pickerContainer = document.getElementById('ghostEmojiPicker');
     if (!pickerContainer) {
         pickerContainer = document.createElement('div');
         pickerContainer.id = 'ghostEmojiPicker';
-        
+
         let emojiGridHtml = '';
         emojis.forEach(emoji => {
             emojiGridHtml += `<span class="ghost-emoji-item">${emoji}</span>`;
@@ -440,7 +532,7 @@ function setupModalActions() {
                 ${emojiGridHtml}
             </div>
         `;
-        
+
         Object.assign(pickerContainer.style, {
             position: 'fixed',
             width: '280px',
@@ -487,7 +579,7 @@ function setupModalActions() {
     function repositionPicker() {
         const rect = emojiBtn.getBoundingClientRect();
         // قرار دادن دقیق باکس در بالای دکمه با احتساب طول خود باکس (حدود ۲۳۰ پیکسل ارتفاع دارد)
-        pickerContainer.style.top = `${rect.top - 235}px`; 
+        pickerContainer.style.top = `${rect.top - 235}px`;
         pickerContainer.style.left = `${rect.left}px`;
     }
 
@@ -495,7 +587,7 @@ function setupModalActions() {
     emojiBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation(); // 👈 جلوی بسته شدن آنی باکس رو می‌گیره
-        
+
         if (pickerContainer.style.display === 'none') {
             repositionPicker();
             pickerContainer.style.display = 'block';
@@ -530,7 +622,7 @@ function setupComments(movieId) {
     const commentsCount = document.getElementById('commentsCount');
     const replyIndicator = document.getElementById('replyIndicator');
     const cancelReplyBtn = document.getElementById('cancelReplyBtn');
-    
+
     const commentsCollectionRef = collection(db, 'movies', movieId, 'comments');
 
     cancelReplyBtn.onclick = () => {
@@ -554,7 +646,7 @@ function setupComments(movieId) {
                 const comment = docSnap.data();
                 const commentId = docSnap.id;
                 const dateStr = comment.createdAt ? new Date(comment.createdAt.toDate()).toLocaleDateString('fa-IR') : 'به‌تازگی';
-                
+
                 const item = document.createElement('div');
                 item.className = comment.parentId ? 'comment-item-pro comment-reply-item' : 'comment-item-pro';
 
@@ -614,7 +706,7 @@ function setupComments(movieId) {
                 email: emailInput.value.trim(),
                 text: textInput.value.trim(),
                 createdAt: new Date(),
-                parentId: activeReplyCommentId, 
+                parentId: activeReplyCommentId,
                 hearts: 0
             });
 
@@ -648,6 +740,10 @@ function fetchSimilarMovies(tags, currentId) {
             snapshot.forEach(doc => {
                 if (doc.id !== currentId) allSimilarMovies.push({ id: doc.id, ...doc.data() });
             });
+
+            if (allSimilarMovies.length >= 2) {
+                showRecommendations(allSimilarMovies);
+            }
 
             if (allSimilarMovies.length === 0) {
                 grid.innerHTML = '<p style="color:var(--text-muted)">فیلم مشابهی یافت نشد.</p>';
@@ -746,4 +842,44 @@ function setupLikes(movieId, movieDocRef, movieData) {
             await updateDoc(movieDocRef, { dislikes: increment(1) });
         }
     };
+}
+function showRecommendations(similarMovies) {
+    const rec1 = document.getElementById('rec1');
+    const rec2 = document.getElementById('rec2');
+
+    if (similarMovies && similarMovies.length >= 2) {
+        rec1.querySelector('img').src = similarMovies[0].thumbnail;
+        rec2.querySelector('img').src = similarMovies[1].thumbnail;
+
+        rec1.onclick = () => {
+            clearInterval(countdownInterval);
+            window.location.href = `movie.html?id=${similarMovies[0].id}`;
+        };
+        rec2.onclick = () => {
+            clearInterval(countdownInterval);
+            window.location.href = `movie.html?id=${similarMovies[0].id}`;
+        };
+    }
+}
+
+// تابع مرکزی برای نمایش پیام
+function handleVideoError() {
+    if (spinner) spinner.classList.add('hidden'); // مخفی کردن لودینگ
+    
+    // جلوگیری از نمایش چندباره پیام
+    if (document.getElementById('customAlertOverlay')) return; 
+
+    showCustomAlert(
+        'اوخ! یک مشکلی پیش اومد', 
+        'مشکلی پیش اومد دادا، یه فیلم دیگه ببین شاید خوشت اومد، اینم بگم تقصیر تو نی تقصیر روزگاره!'
+    );
+
+    // تغییر دکمه برای هدایت به صفحه اصلی
+    const closeBtn = document.getElementById('customAlertCloseBtn');
+    if (closeBtn) {
+        closeBtn.innerText = "برو به لیست فیلم‌ها";
+        closeBtn.onclick = () => {
+            window.location.href = 'index.html';
+        };
+    }
 }

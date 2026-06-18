@@ -16,6 +16,7 @@
             border-bottom: 2px solid #2d3748;
             padding-bottom: 10px;
         }
+
         .tab-btn {
             background: #1a202c;
             color: #a0aec0;
@@ -30,17 +31,21 @@
             align-items: center;
             gap: 8px;
         }
+
         .tab-btn.active {
             background: #ffd700;
             color: #000;
             border-color: #ffd700;
         }
+
         .admin-panel-section {
             display: none;
         }
+
         .admin-panel-section.active {
             display: block;
         }
+
         .form-select-search {
             width: 100%;
             padding: 12px;
@@ -64,7 +69,7 @@
 
     <main class="container admin-container">
         <div class="form-wrapper">
-            
+    
             <div class="admin-tabs">
                 <button class="tab-btn active" data-target="uploadSection">
                     <i class="bi bi-cloud-upload-fill"></i> آپلود ویدیو
@@ -72,49 +77,53 @@
                 <button class="tab-btn" data-target="vipSection">
                     <i class="bi bi-person-fill-check"></i> اشتراک دستی
                 </button>
-                <!-- دکمه تب جدید اضافه شد -->
                 <button class="tab-btn" data-target="coinSection">
                     <i class="bi bi-database-fill-add"></i> افزودن سکه
                 </button>
             </div>
-
-            <!-- بخش آپلود ویدیو -->
+    
             <div id="uploadSection" class="admin-panel-section active">
                 <h2>افزودن فیلم جدید به پلتفرم</h2>
                 <p style="color: #a0aec0; margin-bottom: 20px; font-size: 0.9rem;">اطلاعات فیلم را به دقت وارد کنید تا بلافاصله روی سایت اعمال شود.</p>
-
+    
                 <form id="addMovieForm">
                     <input type="hidden" id="editMovieId" value="">
                     <div class="form-group">
                         <label for="title">عنوان فیلم</label>
                         <input type="text" id="title" required placeholder="مثال: بتمن ۲۰۲۲">
                     </div>
-
+                
                     <div class="form-group">
                         <label for="description">توضیحات فیلم</label>
                         <textarea id="description" rows="4" required placeholder="خلاصه‌ای از داستان فیلم..."></textarea>
                     </div>
-
+                
                     <div class="form-group">
                         <label for="videoUrl">لینک مستقیم فایل ویدئو (MP4)</label>
                         <input type="url" id="videoUrl" required placeholder="https://example.com/movie.mp4">
                     </div>
-
+                
                     <div class="form-group">
                         <label for="thumbnailUrl">لینک کاور فیلم (Image)</label>
                         <input type="url" id="thumbnailUrl" required placeholder="https://example.com/cover.jpg">
                     </div>
-
+                
                     <div class="form-group">
                         <label for="duration">مدت زمان</label>
                         <input type="text" id="duration" required placeholder="مثال: 2:15:00 یا 45 دقیقه">
                     </div>
-
+                
+                    <div class="form-group" id="freeLimitGroup">
+                        <label for="freeUntil">تاریخ و ساعت پایان دسترسی رایگان (انتقال خودکار به VIP)</label>
+                        <input type="datetime-local" id="freeUntil" class="form-select-search" style="background: #1a202c; color: #fff;">
+                        <p style="color: #a0aec0; margin-top: 5px; font-size: 0.8rem;">نکته: فقط در صورتی که دسترسی روی «رایگان» باشد این زمان اعمال می‌شود.</p>
+                    </div>
+                
                     <div class="form-group">
                         <label for="tags">هشتگ‌ها (با کاما یا ویرگول جدا کنید)</label>
                         <input type="text" id="tags" placeholder="مثال: اکشن, درام, تخیلی">
                     </div>
-
+                
                     <div class="form-group">
                         <label for="accessType">محل انتشار و دسترسی فیلم:</label>
                         <select id="accessType" class="admin-select" required>
@@ -122,16 +131,15 @@
                             <option value="vip">👑 فیلم ویژه - GHOST VIP (نمایش در بخش طلایی)</option>
                         </select>
                     </div>
-
+                
                     <button type="submit" id="submitBtn" class="btn-submit">ثبت و انتشار فیلم</button>
                 </form>
             </div>
-
-            <!-- بخش اشتراک دستی -->
+    
             <div id="vipSection" class="admin-panel-section">
                 <h2>مدیریت و اعطای اشتراک دستی ویژه</h2>
                 <p style="color: #a0aec0; margin-bottom: 20px; font-size: 0.9rem;">کاربر مورد نظر و مدت زمان اشتراک را تعیین کنید.</p>
-
+    
                 <form id="manualVipForm">
                     <div class="form-group">
                         <label for="userEmailSelect">انتخاب ایمیل کاربر (ثبت نام شده‌ها)</label>
@@ -139,7 +147,7 @@
                             <option value="" disabled selected>در حال بارگذاری ایمیل کاربران...</option>
                         </select>
                     </div>
-
+    
                     <div class="form-group">
                         <label for="vipPlan">نوع اشتراک</label>
                         <select id="vipPlan" class="admin-select" required>
@@ -149,16 +157,15 @@
                             <option value="365">👑 اشتراک ۱۲ ماهه (یک ساله)</option>
                         </select>
                     </div>
-
+    
                     <button type="submit" id="activateVipBtn" class="btn-submit" style="background: #ffd700; color: #000;">دکمه تایید و فعال سازی</button>
                 </form>
             </div>
-
-            <!-- بخش جدید: افزودن سکه دستی -->
+    
             <div id="coinSection" class="admin-panel-section">
                 <h2>شارژ و افزودن سکه دستی به کاربر</h2>
                 <p style="color: #a0aec0; margin-bottom: 20px; font-size: 0.9rem;">ایمیل کاربر را انتخاب کرده و تعداد سکه‌ای که می‌خواهید به حسابش اضافه شود را وارد کنید.</p>
-
+    
                 <form id="manualCoinForm">
                     <div class="form-group">
                         <label for="userCoinEmailSelect">انتخاب ایمیل کاربر (ثبت نام شده‌ها)</label>
@@ -166,26 +173,27 @@
                             <option value="" disabled selected>در حال بارگذاری ایمیل کاربران...</option>
                         </select>
                     </div>
-
+    
                     <div class="form-group">
                         <label for="coinAmountInput">تعداد سکه جهت واریز</label>
                         <input type="number" id="coinAmountInput" required min="1" placeholder="مثال: 500" class="form-select-search" style="background: #1a202c; color: #fff;">
                     </div>
-
+    
                     <button type="submit" id="chargeCoinBtn" class="btn-submit" style="background: #2ecc71; color: #000; font-weight: bold;">تایید و شارژ سکه</button>
                 </form>
             </div>
-
-            <div id="formMessage" class="form-message"></div>
-        </div>
-    </main>
-
-    <section class="admin-manage-section" style="margin-top: 40px; width: 100%; max-width: 600px; margin-right: auto; margin-left: auto;">
-        <h3 class="section-title" style="margin-bottom: 20px;">مدیریت و حذف فیلم‌ها</h3>
-        <div id="adminMoviesList" class="admin-movies-list">
-            <p style="color: var(--text-muted); text-align: center;">در حال بارگذاری لیست فیلم‌ها...</p>
-        </div>
-    </section>
+    
+            <section class="admin-manage-section" style="margin-top: 40px; width: 100%; max-width: 600px; margin-right: auto; margin-left: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 class="section-title">مدیریت و حذف فیلم‌ها</h3>
+                    <button id="bulkDeleteBtn" style="display: none; background: #e53e3e; color: #fff; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer;">
+                        <i class="bi bi-trash3"></i> حذف انتخاب‌شده‌ها
+                    </button>
+                </div>
+                <div id="adminMoviesList" class="admin-movies-list">
+                    <p style="color: var(--text-muted); text-align: center;">در حال بارگذاری لیست فیلم‌ها...</p>
+                </div>
+            </section>
 
     <script type="module">
         // منطق جاوااسکریپت برای سوئیچ کردن بین تب‌ها

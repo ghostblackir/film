@@ -19,7 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function initSidebarMenu() {
     const menuToggleBtn = document.getElementById('menuToggleBtn');
     const closeMenuBtn = document.getElementById('closeMenuBtn');
-    const sidebarMenu = document.getElementById('sidebarMenu');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
 
     if (!sidebarMenu || !menuToggleBtn) return;
@@ -43,17 +42,19 @@ function handleUserAuth() {
     const profileSection = document.getElementById('userProfileSection');
     if (!profileSection) return;
 
+    // tracking variable to prevent double clicks
+    let isLoggingIn = false;
+
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             let subscriptionType = 'رایگان'; 
             let isVip = false;
-            let userCoins = 150; // مقدار پیش‌فرض فرضی
+            let userCoins = 150; 
 
             try {
                 const userDocRef = doc(db, 'users', user.uid);
                 let userDoc = await getDoc(userDocRef);
                 
-                // اگر کاربر جدید است و سندی ندارد، فیلد سکه اولیه (150) را برایش بساز
                 if (!userDoc.exists()) {
                     await setDoc(userDocRef, {
                         uid: user.uid,
@@ -61,23 +62,20 @@ function handleUserAuth() {
                         displayName: user.displayName || 'کاربر جدید',
                         photoURL: user.photoURL || '',
                         access: 'free',
-                        coins: 150, // ۱۵۰ سکه اولیه برای کاربران رایگان
+                        coins: 150, 
                         createdAt: new Date().toISOString()
                     });
                     userDoc = await getDoc(userDocRef);
                 }
 
                 const userData = userDoc.data();
-                // خواندن مقدار واقعی سکه از دیتابیس
                 userCoins = userData.coins !== undefined ? userData.coins : 150;
 
-                // بررسی تاریخ انقضای اشتراک VIP
                 if (userData.access === 'vip') {
                     const now = new Date();
                     const expireDate = userData.vipExpireAt ? new Date(userData.vipExpireAt) : null;
 
                     if (expireDate && now > expireDate) {
-                        // اشتراک منقضی شده است
                         await updateDoc(userDocRef, {
                             access: 'free',
                             role: 'member'
@@ -93,7 +91,6 @@ function handleUserAuth() {
                 console.error("خطا در دریافت اطلاعات کاربر:", error);
             }
 
-            // رندر پروفایل همراه با بخش سکه آنلاین
             profileSection.innerHTML = `
                 <div class="user-profile-card">
                     <div class="user-info-flex">
@@ -123,7 +120,16 @@ function handleUserAuth() {
                 </button>
             `;
 
-            document.getElementById('googleLoginBtn').addEventListener('click', () => {
+            const googleLoginBtn = document.getElementById('googleLoginBtn');
+
+            googleLoginBtn.addEventListener('click', () => {
+                // 1. Prevent action if a popup is already loading
+                if (isLoggingIn) return;
+                
+                isLoggingIn = true;
+                googleLoginBtn.disabled = true; // Visually disable the button
+                googleLoginBtn.innerHTML = `<i class="bi bi-hourglass-split"></i> در حال اتصال...`;
+
                 signInWithPopup(auth, googleProvider)
                     .then(async (result) => {
                         const userDocRef = doc(db, 'users', result.user.uid);
@@ -135,15 +141,27 @@ function handleUserAuth() {
                                 displayName: result.user.displayName || 'کاربر جدید',
                                 photoURL: result.user.photoURL || '',
                                 access: 'free',
-                                coins: 150, // سکه برای ورود اول
+                                coins: 150, 
                                 createdAt: new Date().toISOString()
                             });
                         }
                         location.reload();
                     })
                     .catch((error) => {
-                        console.error("خطا در ورود با گوگل:", error);
-                        alert("خطایی در هنگام ورود رخ داد.");
+                        // 2. Reset states so the user can try again
+                        isLoggingIn = false;
+                        googleLoginBtn.disabled = false;
+                        googleLoginBtn.innerHTML = `<i class="bi bi-google"></i> ورود / ثبت نام با گوگل`;
+
+                        // 3. Handle specific errors silently or with clean alerts
+                        if (error.code === 'auth/cancelled-popup-request') {
+                            console.log("درخواست قبلی لغو شد؛ پنجره جدید باز شد.");
+                        } else if (error.code === 'auth/popup-closed-by-user') {
+                            alert("پنجره ورود توسط شما بسته شد.");
+                        } else {
+                            console.error("خطا در ورود با گوگل:", error);
+                            alert("خطایی در هنگام ورود رخ داد.");
+                        }
                     });
             });
         }

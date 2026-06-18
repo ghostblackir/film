@@ -275,7 +275,7 @@ body {
     /* لوگو بالا وسط */
     .logo{
         position: relative;
-        left: -15px;
+        left: -35px;
         transform: none;
         width: calc(100% - 50px);
         text-align: center;
@@ -320,16 +320,26 @@ body {
 
 /* ---- Hero Banner ---- */
 .hero-banner {
+    /* تنظیمات ثابت برای همه دستگاه‌ها */
     background: linear-gradient(180deg, rgba(139, 92, 246, 0.15) 0%, rgba(11, 11, 15, 1) 100%),
     url('https://i.ibb.co/ym0rxVZG/1.jpg') center/cover no-repeat;
 
-    height: 350px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: 20px;
     margin-bottom: 30px;
+
+    /* ارتفاع پیش‌فرض برای موبایل */
+    height: 220px;
+}
+
+/* برای دسکتاپ (عرض‌های بیشتر از 768 پیکسل) */
+@media (min-width: 768px) {
+    .hero-banner {
+        height: 350px;
+    }
 }
 
 .hero-content h1 {
@@ -1709,9 +1719,9 @@ body {
 
 .ad-controls {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
+    bottom: 2px;
+    left: 0px;
+    right: 0px;
     display: flex;
     justify-content: space-between; /* چپ برای دکمه لینک، راست برای خروج */
     align-items: center;
@@ -2046,3 +2056,149 @@ video{
     background: #dc3545;
     color: white;
 }
+
+.btn-reset-ad {
+    background: transparent;
+    color: #e53e62;
+    border: 1px solid #e53e62;
+    padding: 14px;
+    width: 100%;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+.btn-reset-ad:hover {
+    background: rgba(229, 62, 98, 0.1);
+}
+
+/* Spinner Styles */
+.spinner-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+.spinner {
+    width: 50px; height: 50px;
+    border: 5px solid rgba(255,255,255,0.1);
+    border-top: 5px solid var(--purple-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.recommendation-grid {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+.rec-item img {
+    transition: transform 0.3s;
+    border: 2px solid transparent;
+}
+.rec-item img:hover {
+    transform: scale(1.1);
+    border-color: var(--purple-primary);
+}
+.rec-item img {
+    width: 150px;
+    height: 220px; /* اندازه ثابت */
+    object-fit: cover; /* برای اینکه عکس کشیده نشود */
+    background: #2d3748; /* رنگ پس‌زمینه در صورت لود نشدن عکس */
+}
+
+/* ---- استایل نئونی بج تایمر زنده GHOST ---- */
+.card-img-wrapper {
+    position: relative; /* مطمئن شدن از پوزیشن برای قرارگیری تایمر */
+}
+
+.card-timer-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px; /* سمت چپ قرار دادم چون احتمالاً بج VIP سمت راسته که روی هم نیفتن */
+    background: rgba(11, 11, 15, 0.8);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    color: #ffd700; /* رنگ طلایی سایبرپانکی */
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: bold;
+    direction: ltr;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid rgba(139, 92, 246, 0.4); /* مرز بنفش خفیف */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    z-index: 4;
+    font-family: monospace, system-ui;
+}
+
+.card-timer-badge i {
+    color: #8b5cf6; /* آیکون ساعت بنفش متمایل به نئون */
+    animation: timerPulse 1.6s infinite alternate;
+}
+
+@keyframes timerPulse {
+    from { opacity: 0.5; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1.05); }
+}
+
+/* ---- تنظیم جهت کنترلر پلیر از چپ به راست ---- */
+.custom-controls {
+    direction: ltr !important; /* نوار پیشرفت و کل کانتینر کنترلر را چپ به راست می‌کند */
+}
+
+/* نوار پرشدن ویدیو از چپ به راست */
+.progress-container {
+    direction: ltr !important;
+}
+
+.progress-bar-filled, .progress-bar-buffered {
+    left: 0 !important;
+    right: auto !important;
+    transform-origin: left !important; /* مطمئن شدن از پر شدن از سمت چپ */
+}
+
+/* چیدمان ردیف دکمه‌ها */
+.controls-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    direction: ltr !important;
+}
+
+/* باکس دکمه‌های پخش، صدا و زمان (سمت چپ) */
+.controls-left-side {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+}
+
+/* باکس دکمه تمام صفحه (سمت راست) */
+.controls-right-side {
+    display: flex !important;
+    align-items: center !important;
+}
+
+/* اصلاح جهت اسلایدر صدا در حالت LTR */
+.volume-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+}
+
+.volume-slider {
+    direction: ltr !important;
+}
+
