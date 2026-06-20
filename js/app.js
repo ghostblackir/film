@@ -76,30 +76,57 @@ function renderPaginationControls() {
     const totalPages = Math.ceil(filteredMovies.length / ITEMS_PER_PAGE);
     if (totalPages <= 1) return;
 
+    const rangeSize = 10; // اندازه بازه نمایش اعداد
+    
+    // --- منطق هوشمند پنهان‌سازی مینی‌مال ---
+    // اگر کاربر روی ۱۰ کلیک کرد، بازه رو از ۱۰ شروع کن (۱۰ تا ۱۹)، در غیر این صورت بازه‌های عادی ۱۰ تایی
+    let startPage;
+    if (currentPage % rangeSize === 0) {
+        startPage = currentPage; // اگر دقیقاً روی ۱۰، ۲۰، ۳۰ و... بود، خودش شروع بازه میشه
+    } else {
+        startPage = Math.floor((currentPage - 1) / rangeSize) * rangeSize + 1;
+    }
+    
+    let endPage = Math.min(startPage + rangeSize - 1, totalPages);
+
+    // دکمه «صفحه قبل» تک تایی (فلش راست)
     const prevBtn = document.createElement('button');
     prevBtn.className = 'page-btn';
     prevBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
     prevBtn.disabled = currentPage === 1;
-    prevBtn.addEventListener('click', () => { currentPage--; renderPaginatedGrid(); window.scrollTo({top: 400, behavior: 'smooth'}); });
+    prevBtn.addEventListener('click', () => { 
+        currentPage--; 
+        renderPaginatedGrid(); 
+        renderPaginationControls(); 
+        window.scrollTo({top: 400, behavior: 'smooth'}); 
+    });
     paginationBox.appendChild(prevBtn);
 
-    for (let i = 1; i <= totalPages; i++) {
+    // رندر کردن اعداد (وقتی روی ۱۰ بزنه، ۱ تا ۹ غیب میشن و ۱۰ تا ۱۹ یا ۲۰ نمایان میشن)
+    for (let i = startPage; i <= endPage; i++) {
         const pageBtn = document.createElement('button');
         pageBtn.className = `page-btn ${currentPage === i ? 'active' : ''}`;
         pageBtn.textContent = i;
         pageBtn.addEventListener('click', () => {
             currentPage = i;
             renderPaginatedGrid();
+            renderPaginationControls(); // با هر کلیک، بازه مجدداً محاسبه و دکمه‌ها غیب/ظاهر میشن
             window.scrollTo({top: 400, behavior: 'smooth'});
         });
         paginationBox.appendChild(pageBtn);
     }
 
+    // دکمه «صفحه بعد» تک تایی (فلش چپ)
     const nextBtn = document.createElement('button');
     nextBtn.className = 'page-btn';
     nextBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
     nextBtn.disabled = currentPage === totalPages;
-    nextBtn.addEventListener('click', () => { currentPage++; renderPaginatedGrid(); window.scrollTo({top: 400, behavior: 'smooth'}); });
+    nextBtn.addEventListener('click', () => { 
+        currentPage++; 
+        renderPaginatedGrid(); 
+        renderPaginationControls(); 
+        window.scrollTo({top: 400, behavior: 'smooth'}); 
+    });
     paginationBox.appendChild(nextBtn);
 }
 

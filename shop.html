@@ -16,7 +16,8 @@
         <div class="header-container">
             <button id="menuToggleBtn" class="menu-toggle-btn"><i class="bi bi-list"></i></button>
 
-            <a href="index.html" class="logo"><i class="bi bi-bag"></i> GHOST <span>SHOP <i class="bi bi-crown-fill"></i></span></a>
+            <a href="index.html" class="logo"><i class="bi bi-bag"></i> GHOST <span>SHOP <i
+                        class="bi bi-crown-fill"></i></span></a>
 
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="جستجوی فیلم...">
@@ -138,20 +139,29 @@
                 </div>
 
                 <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 10px; margin-bottom: 25px;">
-                    <div id="discountBadge" style="background: #ff3838; color: #fff; display: none; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 10px;"></div>
-                    
-                    <div id="oldCoinPriceForm" style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px; display: none;">
+                    <div id="discountBadge"
+                        style="background: #ff3838; color: #fff; display: none; padding: 3px 10px; border-radius: 20px; font-size: 0.8rem; margin-bottom: 10px;">
+                    </div>
+
+                    <div id="oldCoinPriceForm"
+                        style="color: #aaa; font-size: 0.9rem; margin-bottom: 5px; display: none;">
                         قیمت اصلی: <span id="oldCoinPrice" style="text-decoration: line-through;">۰</span> تومان
                     </div>
-                    
+
                     <div style="color: #fff; font-size: 1.2rem;">
-                        مبلغ قابل پرداخت: <span id="coinPriceDisplay" style="color: #2ecc71; font-size: 1.8rem; font-weight: bold;">۲۰,۰۰۰</span> تومان
+                        مبلغ قابل پرداخت: <span id="coinPriceDisplay"
+                            style="color: #2ecc71; font-size: 1.8rem; font-weight: bold;">۲۰,۰۰۰</span> تومان
                     </div>
                 </div>
 
                 <a href="#" id="coinBuyBtn" target="_blank" class="btn-buy"
                     style="background: linear-gradient(135deg, #ffd700, #ffa500); color: #000; font-weight: bold; display: block; padding: 12px; border-radius: 8px; text-decoration: none;">
                     <i class="bi bi-telegram"></i> خرید و شارژ فوری سکه
+                </a>
+                <a href="#" id="cryptoBuyBtn" class="shop-btn-crypto"
+                    style="margin-top: 12px; background: linear-gradient(135deg, #26a17b 0%, #147556 100%); border: 1px solid #00ffbc; box-shadow: 0 0 15px rgba(38, 161, 123, 0.3); display: flex; align-items: center; justify-content: center; gap: 10px; color: white; text-decoration: none; padding: 12px; border-radius: 8px; font-weight: bold; transition: all 0.3s;">
+                    <i class="bi bi-currency-bitcoin" style="font-size: 1.3rem; color: #00ffbc;"></i> پرداخت با تتر
+                    (USDT - TRC20)
                 </a>
             </div>
         </div>
@@ -180,54 +190,44 @@
     <script type="module" src="js/menu.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', () => {
             const coinRange = document.getElementById('coinRange');
             const coinCountDisplay = document.getElementById('coinCountDisplay');
             const coinPriceDisplay = document.getElementById('coinPriceDisplay');
             const oldCoinPrice = document.getElementById('oldCoinPrice');
             const discountBadge = document.getElementById('discountBadge');
             const coinBuyBtn = document.getElementById('coinBuyBtn');
-
-            // پایه قیمت: ۵۰ سکه = ۲۰,۰۰۰ تومان (هر سکه ۴۰۰ تومان)
-            const baseCoins = 50;
-            const basePrice = 20000;
-            const baseCostPerCoin = basePrice / baseCoins; // ۴۰۰ تومان
-
+            
+            // 🌟 ۱. گرفتن المان دکمه تتر که اضافه کردی
+            const cryptoBuyBtn = document.getElementById('cryptoBuyBtn');
+    
+            // قیمت حدودی هر تتر به تومان (مثلاً ۶۰,۰۰۰ تومان - می‌تونی عوضش کنی)
+            const USDT_PRICE_TOMAN = 60000;
+    
+            // تابع محاسبه قیمت شما (بدون تغییر)
             function calculatePrice(coins) {
-                // قیمت اصلی بدون تخفیف
-                let originalPrice = coins * baseCostPerCoin;
-
-                // محاسبه درصد تخفیف پلکانی بر اساس تعداد خرید
-                let discountPercent = 0;
-                if (coins >= 500 && coins < 2000) {
-                    discountPercent = 10; // ۱۰ درصد تخفیف
-                } else if (coins >= 2000 && coins < 10000) {
-                    discountPercent = 20; // ۲۰ درصد تخفیف
-                } else if (coins >= 10000 && coins < 30000) {
-                    discountPercent = 35; // ۳۵ درصد تخفیف
-                } else if (coins >= 30000) {
-                    discountPercent = 50; // ۵۰ درصد تخفیف برای حجم‌های بالا
-                }
-
-                // محاسبه قیمت نهایی با اعمال تخفیف
-                let finalPrice = originalPrice * (1 - discountPercent / 100);
-
-                return {
-                    original: Math.round(originalPrice),
-                    final: Math.round(finalPrice),
-                    discount: discountPercent
-                };
+                const basePricePerCoin = 500; 
+                let discount = 0;
+    
+                if (coins >= 500 && coins < 1000) discount = 10;
+                else if (coins >= 1000 && coins < 5000) discount = 20;
+                else if (coins >= 5000) discount = 35;
+    
+                const original = coins * basePricePerCoin;
+                const final = original * (1 - discount / 100);
+    
+                return { original, final, discount };
             }
-
+    
+            // تابع آپدیت کردن فرانت‌آند و دکمه‌ها
             function updateUI() {
                 const coins = parseInt(coinRange.value);
                 const prices = calculatePrice(coins);
-
-                // فرمت کردن اعداد به صورت سه رقم سه رقم
+    
+                // فرمت کردن اعداد به صورت سه رقم سه رقم برای ریال
                 coinCountDisplay.textContent = coins.toLocaleString('fa-IR');
                 coinPriceDisplay.textContent = prices.final.toLocaleString('fa-IR');
-
-                // مدیریت نمایش تخفیف و قیمت قبلی
+    
                 if (prices.discount > 0) {
                     oldCoinPrice.parentElement.style.display = 'block';
                     oldCoinPrice.textContent = prices.original.toLocaleString('fa-IR');
@@ -237,17 +237,32 @@
                     oldCoinPrice.parentElement.style.display = 'none';
                     discountBadge.style.display = 'none';
                 }
-
-                // ساخت لینک داینامیک تلگرام با جزئیات دقیق برای ادمین
+    
+                // ساخت لینک تلگرام برای خرید ریالی
                 const message = `سلام، من متقاضی خرید ${coins} سکه GHOST به مبلغ ${prices.final.toLocaleString()} تومان هستم.`;
-                const encodedMessage = encodeURIComponent(message);
-                coinBuyBtn.href = `https://t.me/hexdik?text=${encodedMessage}`;
+                coinBuyBtn.href = `https://t.me/hexdik?text=${encodeURIComponent(message)}`;
+    
+                // 🌟 ۲. محاسبه و آپدیت دقیق قیمت تتر
+                // قیمت نهایی تومان رو تقسیم بر قیمت یک تتر می‌کنیم و تا ۱ رقم اعشار گرد می‌کنیم
+                const usdtAmount = (prices.final / USDT_PRICE_TOMAN).toFixed(1);
+    
+                // ۳. آپدیت کردن متن روی دکمه تتر تا کاربر ببینه چقدر باید بده
+                if (cryptoBuyBtn) {
+                    cryptoBuyBtn.innerHTML = `<i class="bi bi-currency-bitcoin" style="font-size: 1.3rem; color: #00ffbc;"></i> پرداخت با تتر (${usdtAmount} USDT)`;
+                    
+                    // ۴. ساخت متن پیام تلگرام برای بخش کریپتو
+                    const cryptoMessage = `سلام ادمین، من می‌خوام تعداد ${coins} سکه GHOST رو با تتر پرداخت کنم.\n\n` +
+                                          `💵 مبلغ محاسبه شده: ${usdtAmount} USDT (شبکه TRC-20)\n` +
+                                          `🌐 لطفاً آدرس ولت رو بفرستید تا واریز کنم و هش تراکنش رو بفرستم.`;
+                                          
+                    cryptoBuyBtn.href = `https://t.me/hexdik?text=${encodeURIComponent(cryptoMessage)}`;
+                }
             }
-
+    
             // گوش دادن به تغییرات اسلایدر
             coinRange.addEventListener('input', updateUI);
-
-            // اجرای اولیه برای تنظیم مقادیر پیش‌فرض
+    
+            // اجرای اولیه برای تنظیم مقادیر پیش‌فرض در بدو ورود به صفحه
             updateUI();
         });
     </script>
