@@ -35,7 +35,7 @@ export {
     db, 
     auth,
     googleProvider,
-    GoogleAuthProvider, // اضافه شدن کلاس اصلی برای کدهای احتمالی دیگر
+    GoogleAuthProvider, 
     signInWithPopup,
     signOut,
     onAuthStateChanged,

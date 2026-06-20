@@ -15,7 +15,8 @@
     <header class="main-header vip-header">
         <div class="header-container">
             <button id="menuToggleBtn" class="menu-toggle-btn"><i class="bi bi-list"></i></button>
-            <a href="index.html" class="logo vip-logo"><i class="bi bi-gem"></i> GHOST <span>VIP <i class="bi bi-crown-fill"></i></span></a>
+            <a href="index.html" class="logo vip-logo"><i class="bi bi-gem"></i> GHOST <span>VIP <i
+                        class="bi bi-crown-fill"></i></span></a>
             <div class="search-box vip-search-box">
                 <input type="text" id="searchInput" placeholder="جستجوی فیلم، توضیحات یا هشتگ...">
                 <button id="searchBtn"><i class="bi bi-search"></i></button>
@@ -141,8 +142,23 @@
 
             onSnapshot(q, (snapshot) => {
                 const fetchedMovies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const now = new Date().getTime();
 
-                allVipMovies = fetchedMovies.filter(movie => movie.access === 'vip');
+                // 🌟 اصلاح اصلی اینجاست: فیلم‌های واقعی VIP + فیلم‌های فری که زمانشون تموم شده
+                allVipMovies = fetchedMovies.filter(movie => {
+                    // اگر از اول VIP بوده که حله
+                    if (movie.access === 'vip') return true;
+
+                    // اگر فری بوده ولی تایمرش به پایان رسیده، اینم باید بیاد تو پیج VIP
+                    if (movie.access === 'free' && movie.freeUntil) {
+                        const targetTime = new Date(movie.freeUntil).getTime();
+                        if (targetTime <= now) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
 
                 const searchInput = document.getElementById('searchInput');
                 const txt = searchInput ? searchInput.value.toLowerCase().trim() : '';

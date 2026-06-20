@@ -1592,7 +1592,7 @@ body {
     aspect-ratio: 16 / 9;
 }
 
-/* کنترلرهای شخصی سازی شده یوتیوبی */
+/* تنظیمات کل بخش کنترلر */
 .custom-controls {
     position: absolute;
     bottom: 0;
@@ -1605,10 +1605,66 @@ body {
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 8;
+    direction: ltr; /* این خط باعث میشه همه چیز اصولی از چپ به راست چیده بشه */
 }
 
 .custom-video-container:hover .custom-controls {
     opacity: 1;
+}
+
+/* نوار پیشرفت ویدیو (چپ به راست) */
+.progress-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 8px;
+    border-radius: 3px;
+}
+
+/* با این دستورات مطمئن می‌شیم که نوارها چسبیده به چپ هستن و به راست رشد می‌کنن */
+.progress-bar-buffered, .progress-bar-filled {
+    position: absolute;
+    left: 0; 
+    top: 0;
+    height: 100%;
+    border-radius: 3px;
+    width: 0%; /* این مقدار توی جاوااسکریپت تغییر میکنه */
+}
+
+.progress-bar-buffered {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.progress-bar-filled {
+    background-color: #ff0000; /* رنگ قرمز یوتیوبی */
+}
+
+/* ردیف دکمه‌ها: چپ و راست کردن آیتم‌ها */
+.controls-row {
+    display: flex;
+    justify-content: space-between; /* بخش چپ رو می‌فرسته تهِ چپ، بخش راست رو می‌فرسته تهِ راست */
+    align-items: center;
+}
+
+/* چیدمان دکمه‌های سمت چپ (پلی، صدا، زمان) پشت سر هم */
+.controls-left {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* فاصله بین دکمه‌های سمت چپ */
+}
+
+.volume-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* استایل دکمه سمت راست (تمام صفحه) */
+.controls-r {
+    display: flex;
+    align-items: center;
 }
 
 /* نوار لودینگ و پروگرس بار */
@@ -2152,53 +2208,5 @@ video{
 @keyframes timerPulse {
     from { opacity: 0.5; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1.05); }
-}
-
-/* ---- تنظیم جهت کنترلر پلیر از چپ به راست ---- */
-.custom-controls {
-    direction: ltr !important; /* نوار پیشرفت و کل کانتینر کنترلر را چپ به راست می‌کند */
-}
-
-/* نوار پرشدن ویدیو از چپ به راست */
-.progress-container {
-    direction: ltr !important;
-}
-
-.progress-bar-filled, .progress-bar-buffered {
-    left: 0 !important;
-    right: auto !important;
-    transform-origin: left !important; /* مطمئن شدن از پر شدن از سمت چپ */
-}
-
-/* چیدمان ردیف دکمه‌ها */
-.controls-row {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    direction: ltr !important;
-}
-
-/* باکس دکمه‌های پخش، صدا و زمان (سمت چپ) */
-.controls-left-side {
-    display: flex !important;
-    align-items: center !important;
-    gap: 15px !important;
-}
-
-/* باکس دکمه تمام صفحه (سمت راست) */
-.controls-right-side {
-    display: flex !important;
-    align-items: center !important;
-}
-
-/* اصلاح جهت اسلایدر صدا در حالت LTR */
-.volume-container {
-    display: flex !important;
-    align-items: center !important;
-    gap: 5px !important;
-}
-
-.volume-slider {
-    direction: ltr !important;
 }
 
