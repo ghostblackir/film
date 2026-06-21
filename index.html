@@ -87,7 +87,6 @@
             </div>
         </section>
     </main>
-
     <a href="vip.html" id="vipFloatingBtn" title="خرید اشتراک VIP">
         <i class="bi bi-gem"></i>
         <span>VIP</span>
@@ -96,6 +95,71 @@
     <button id="scrollTopBtn" class="bi bi-arrow-up" title="بازگشت به بالا"></button>
     
 
+    <!-- سکشن آمار پیشرفته و بازی سایبرپانکی GHOST -->
+    <section class="cyber-stats-section">
+        <h2 class="section-title"><i class="bi bi-terminal-split"></i> وضعیت زنده هسته مرکزی GHOST</h2>
+        
+        <div class="stats-panel-grid">
+            <!-- کارت تعداد فیلم‌ها -->
+            <div class="stat-cyber-card">
+                <div class="stat-icon"><i class="bi bi-film"></i></div>
+                <div class="stat-info-box">
+                    <span class="stat-label">آرشیو فیلم‌ها</span>
+                    <h3 class="stat-number" id="totalMoviesCount">00</h3>
+                </div>
+                <div class="card-glitch-line"></div>
+            </div>
+
+            <!-- کارت کل بازدیدها -->
+            <div class="stat-cyber-card">
+                <div class="stat-icon"><i class="bi bi-eye"></i></div>
+                <div class="stat-info-box">
+                    <span class="stat-label">کل ترانسفر و بازدید</span>
+                    <h3 class="stat-number" id="totalViewsCount">00</h3>
+                </div>
+                <div class="card-glitch-line"></div>
+            </div>
+
+            <!-- کارت کل لایک‌ها -->
+            <div class="stat-cyber-card">
+                <div class="stat-icon"><i class="bi bi-heart-fill"></i></div>
+                <div class="stat-info-box">
+                    <span class="stat-label">لایک‌های ثبت‌شده</span>
+                    <h3 class="stat-number" id="totalLikesCount">00</h3>
+                </div>
+                <div class="card-glitch-line"></div>
+            </div>
+
+            <!-- کارت اعضای آنلاین (فیک نوسانی) -->
+            <div class="stat-cyber-card user-online-card">
+                <div class="stat-icon pulse-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="stat-info-box">
+                    <span class="stat-label">سیگنال اعضای متصل</span>
+                    <h3 class="stat-number" id="fakeMembersCount">1,420</h3>
+                </div>
+                <div class="card-glitch-line"></div>
+            </div>
+        </div>
+
+        <!-- مینی گیم سایبرپانکی -->
+        <div class="cyber-game-box">
+            <div class="game-header">
+                <span><i class="bi bi-controller"></i> هک هسته مرکزی (دیتاماین)</span>
+                <span class="core-energy">پایداری شبکه: <span id="energyPercent">84%</span></span>
+            </div>
+            <p class="game-desc">پلتفرم زیر فشار ترافیک است! روی هسته کلیک کن تا کدهای مخرب را دفرگ کرده و انرژی شبکه را بالا ببری.</p>
+            <div class="cyber-core-wrapper">
+                <button id="cyberCoreBtn" class="cyber-core-button">
+                    <div class="core-inner-glow"></div>
+                    <i class="bi bi-cpu-fill"></i>
+                </button>
+            </div>
+            <div class="game-score-board">
+                <span>پاداش دیتاماین: <strong id="gameScore">0</strong> پوینت</span>
+            </div>
+        </div>
+    </section>
+    
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <aside class="sidebar-menu" id="sidebarMenu">
         <div class="sidebar-header">

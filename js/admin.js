@@ -178,6 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
+
+
             });
 
         } catch (error) {
@@ -203,6 +205,76 @@ document.addEventListener('DOMContentLoaded', () => {
         msgElement.style.display = 'block';
         setTimeout(() => { msgElement.style.display = 'none'; }, 5000);
     }
+
+    // -------------------------------------------------------------------------
+    // بخش جدید: اعمال آمار فیک تصادفی به همه فیلم‌ها (داخل محدوده مجاز دکمه‌ها)
+    // -------------------------------------------------------------------------
+    const updateAllStatsBtn = document.getElementById('updateAllStatsBtn');
+
+    if (updateAllStatsBtn) {
+        updateAllStatsBtn.addEventListener('click', async () => {
+            const viewsInput = document.getElementById('manualViews').value;
+            const likesInput = document.getElementById('manualLikes').value;
+
+            const maxViews = parseInt(viewsInput);
+            const maxLikes = parseInt(likesInput);
+
+            if (isNaN(maxViews) && isNaN(maxLikes)) {
+                alert('لطفاً حداقل یکی از فیلدهای بازدید یا لایک را پر کنید.');
+                return;
+            }
+
+            if (confirm('آیا از اعمال آمار فیک تصادفی روی تمام فیلم‌های پلتفرم مطمئن هستید؟')) {
+                updateAllStatsBtn.disabled = true;
+                updateAllStatsBtn.textContent = 'در حال شلیک آمار...';
+
+                try {
+                    // گرفتن تمام مستندات فیلم‌ها از کلکشن movies
+                    const snapshot = await getDocs(collection(db, 'movies'));
+                    const updatePromises = [];
+
+                    snapshot.forEach((movieDoc) => {
+                        const movieRef = doc(db, 'movies', movieDoc.id);
+                        const updateData = {};
+
+                        // ایجاد نوسان طبیعی: عددی تصادفی بین ۸۰٪ تا ۱۰۰٪ سقف وارد شده
+                        if (!isNaN(maxViews) && maxViews > 0) {
+                            const randomViews = Math.floor(maxViews * (0.8 + Math.random() * 0.2));
+                            updateData.views = randomViews;
+                        }
+
+                        if (!isNaN(maxLikes) && maxLikes > 0) {
+                            const randomLikes = Math.floor(maxLikes * (0.8 + Math.random() * 0.2));
+                            updateData.likes = randomLikes;
+                        }
+
+                        if (Object.keys(updateData).length > 0) {
+                            updatePromises.push(updateDoc(movieRef, updateData));
+                        }
+                    });
+
+                    // اجرای موازی تمام آپدیت‌ها در فایربیس
+                    await Promise.all(updatePromises);
+
+                    alert('💥 آمار فیک با مقادیر کاملاً نوسانی و طبیعی روی تمام فیلم‌ها اعمال شد!');
+                    document.getElementById('manualViews').value = '';
+                    document.getElementById('manualLikes').value = '';
+
+                    // حالا چون داخل بلاک هستیم، بدون ارور لیست فیلم‌ها را رفرش می‌کند
+                    fetchAdminMovies();
+
+                } catch (error) {
+                    console.error("خطا در تزریق آمار فیک گروهی: ", error);
+                    alert('خطایی در ارتباط با فایربیس رخ داد.');
+                } finally {
+                    updateAllStatsBtn.disabled = false;
+                    updateAllStatsBtn.textContent = '⚡ اعمال آمار به همه';
+                }
+            }
+        });
+    }
+
+
 
 
     // -------------------------------------------------------------------------
@@ -574,3 +646,4 @@ bulkDeleteBtn.addEventListener('click', async () => {
         }
     }
 });
+

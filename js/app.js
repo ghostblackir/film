@@ -15,6 +15,9 @@ async function initApp() {
     setupScrollTop();
     initLiveMovies(); // راه‌اندازی شنود زنده
     setupSearch();
+    // متدهای اضافه شده برای آمار فیک و بازی
+    initFakeMembersOscillator();
+    setupCyberGame()
 }
 
 // گوش دادن زنده و بدون رفرش به تغییرات فایربیس
@@ -40,6 +43,28 @@ function initLiveMovies() {
 
         // ۱. رندر خودکار و زنده گرید اصلی (با پجینیشن)
         renderPaginatedGrid();
+
+        // 📊 محاسبه و پردازش آمارهای زنده دیتابیس GHOST
+        const totalMovies = allMovies.length;
+        let totalViews = 0;
+        let totalLikes = 0;
+
+        allMovies.forEach(movie => {
+            totalViews += (movie.views || 0);
+            totalLikes += (movie.likes || 0); // فرض بر اینکه فیلد likes در دیتای فیلم موجود باشد
+        });
+
+        // سوییچ لایک فیک در صورتی که دیتابیس فیلد لایک نداشت
+        if(totalLikes === 0) totalLikes = Math.floor(totalViews * 0.12); 
+
+        // آپدیت المنت‌های فرانت اند
+        const elMoviesCount = document.getElementById('totalMoviesCount');
+        const elViewsCount = document.getElementById('totalViewsCount');
+        const elLikesCount = document.getElementById('totalLikesCount');
+
+        if(elMoviesCount) elMoviesCount.innerText = totalMovies;
+        if(elViewsCount) elViewsCount.innerText = totalViews.toLocaleString('fa-IR');
+        if(elLikesCount) elLikesCount.innerText = totalLikes.toLocaleString('fa-IR');
 
         // ۲. رندر خودکار و زنده گرید محبوب‌ترین‌ها (حداکثر ۶ تا)
         const popularMovies = [...homeMovies].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 6);
@@ -443,3 +468,57 @@ setInterval(() => {
         }
     }
 }, 1000);
+
+// موتور هوشمند نوسان اعضای آنلاین (فیک و طبیعی)
+function initFakeMembersOscillator() {
+    const elMembers = document.getElementById('fakeMembersCount');
+    if (!elMembers) return;
+
+    let baseMembers = Math.floor(Math.random() * 300) + 1200; // عدد پایه بین ۱۲۰۰ تا ۱۵۰۰
+
+    setInterval(() => {
+        // ایجاد یک نوسان رندوم بین -۷ تا +۸ کارشناسانه تا ضایه نباشد
+        const fluctuation = Math.floor(Math.random() * 16) - 7;
+        baseMembers += fluctuation;
+
+        // مهار مرز بالا و پایین برای حفظ چارچوب آمار
+        if (baseMembers < 1000) baseMembers = 1200;
+        if (baseMembers > 2000) baseMembers = 1400;
+
+        elMembers.innerText = baseMembers.toLocaleString('fa-IR');
+    }, 3500); // هر ۳.۵ ثانیه سیگنال را تغییر دهد
+}
+
+// موتور پردازشی میکرو-گیم کلیکر
+function setupCyberGame() {
+    const coreBtn = document.getElementById('cyberCoreBtn');
+    const scoreText = document.getElementById('gameScore');
+    const energyText = document.getElementById('energyPercent');
+
+    if (!coreBtn || !scoreText || !energyText) return;
+
+    let score = 0;
+    let energy = 84;
+
+    coreBtn.addEventListener('click', () => {
+        score += 10;
+        if (energy < 100) energy += 1;
+
+        scoreText.innerText = score;
+        energyText.innerText = `${energy}%`;
+
+        // تغییر رنگ موقتی دکمه برای پاسخ گرافیکی به کلیک
+        coreBtn.style.borderColor = '#00ffcc';
+        setTimeout(() => {
+            coreBtn.style.borderColor = 'var(--purple-primary)';
+        }, 150);
+    });
+
+    // کاهش تدریجی انرژی شبکه با گذر زمان برای به چالش کشیدن کاربر
+    setInterval(() => {
+        if (energy > 40) {
+            energy -= 1;
+            energyText.innerText = `${energy}%`;
+        }
+    }, 8000);
+}
