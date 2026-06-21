@@ -9,12 +9,14 @@ const scheduleTime = document.getElementById('schedule-time');
 const resetBtn = document.getElementById('reset-btn');
 const adminChatMessages = document.getElementById('admin-chat-messages');
 const statusMessage = document.getElementById('status-message');
+const coverInput = document.getElementById('stream-cover-input');
 
 const streamDocRef = doc(db, "streams", "current");
 
 // ۱. لود اطلاعات فعلی دیتابیس در فرم ادمین
 async function loadData() {
     const docSnap = await getDoc(streamDocRef);
+    if (coverInput) coverInput.value = data.coverUrl || "";
     if (docSnap.exists()) {
         const data = docSnap.data();
         titleInput.value = data.title || "";
@@ -47,10 +49,15 @@ adminForm.addEventListener('submit', async (e) => {
         }
     }
 
+    // گرفتن مقدار فیلد کاور که به HTML اضافه کردیم (با بررسی اینکه وجود داشته باشه)
+    const coverInput = document.getElementById('stream-cover-input');
+    const coverUrlValue = coverInput ? coverInput.value.trim() : "";
+
     await setDoc(streamDocRef, {
         title: titleInput.value,
         description: descInput.value,
         hlsUrl: urlInput.value,
+        coverUrl: coverUrlValue, // 🌟 اضافه شدن فیلد جدید کاور به دیتابیس فایربیس
         isLive: isLiveStatus,
         scheduledAt: scheduledTimestamp
     }, { merge: true });

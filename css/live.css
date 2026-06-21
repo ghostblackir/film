@@ -501,3 +501,4 @@ body {
     pointer-events: none; /* غیرفعال کردن کلیک */
 }
 .custom-alert { position:fixed; top:20px; right:20px; background:#121225; border:1px solid #ff2a74; padding:15px; color:#fff; border-radius:10px; z-index:9999; }
+

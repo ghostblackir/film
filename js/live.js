@@ -137,7 +137,7 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// ۳. دریافت آنی وضعیت لایو و مدیریت هوشمند شمارش معکوس (نسخه کاملاً اصلاح‌شده و ضد باگ ریست)
+// ۳. دریافت آنی وضعیت لایو و مدیریت هوشمند شمارش معکوس و کاور (نسخه هماهنگ با کاور اختصاصی)
 onSnapshot(streamDocRef, async (docSnap) => {
     if (docSnap.exists()) {
         const data = docSnap.data();
@@ -149,12 +149,23 @@ onSnapshot(streamDocRef, async (docSnap) => {
         let targetTime = data.scheduledAt;
         const now = Date.now();
 
+        // 🌟 تعریف آدرس گیف برفک پیش‌فرض دیتابیس GHOST
+        const defaultGif = "https://max3d.pl/uploads/monthly_2022_12/MetallicMealyAmoeba-size_restricted.gif.46953d3935a9924587b9dc7dd432c886.gif";
+        // انتخاب منبع تصویر: اگر کاور بود آن را بگذار، در غیر این صورت گیف برفک
+        const selectedCover = (data.coverUrl && data.coverUrl.trim() !== "") ? data.coverUrl : defaultGif;
+
         // 🔴 ج) اولویت اول: حالت کاملاً آفلاین معمولی (اگر ادمین لایو را قطع کرده و زمان آینده‌ای هم نیست)
         if (data.isLive === false && (!targetTime || now >= targetTime)) {
             countdownBox.style.display = "none";
             player.reset();
             playerDoc.style.display = "none";
-            offlineGif.style.display = "block";
+
+            // اعمال مدیریت هوشمند کاور/گیف در حالت آفلاین
+            if (offlineGif) {
+                offlineGif.src = selectedCover;
+                offlineGif.style.display = "block";
+            }
+
             liveStatus.innerText = "آفلاین";
             liveStatus.className = "status-tag offline";
             streamDescription.innerText = data.description || "";
@@ -166,8 +177,14 @@ onSnapshot(streamDocRef, async (docSnap) => {
         // 🎯 الف) اگر زمان آینده ست شده و هنوز به آن زمان نرسیده‌ایم (حالت شمارش معکوس)
         else if (targetTime && now < targetTime && data.isLive === false) {
             countdownBox.style.display = "block";
-            offlineGif.style.display = "block";
             playerDoc.style.display = "none";
+
+            // اعمال مدیریت هوشمند کاور/گیف زیر باکس تایمر شمارش معکوس
+            if (offlineGif) {
+                offlineGif.src = selectedCover;
+                offlineGif.style.display = "block";
+            }
+
             liveStatus.innerText = "زمان‌بندی شده";
             liveStatus.className = "status-tag offline";
 
@@ -207,7 +224,7 @@ onSnapshot(streamDocRef, async (docSnap) => {
         // 🟢 ب) حالت زنده: اگر ادمین دکمه لایو فوری را زده یا زمان انتظار فرا رسیده/گذشته باشد (و لینک ویدیو موجود باشد)
         else if ((data.isLive === true || (targetTime && now >= targetTime)) && data.hlsUrl) {
             countdownBox.style.display = "none";
-            offlineGif.style.display = "none";
+            if (offlineGif) offlineGif.style.display = "none";
             playerDoc.style.display = "block";
             liveStatus.className = "status-tag online";
             streamDescription.innerText = data.description || "";
@@ -259,7 +276,13 @@ onSnapshot(streamDocRef, async (docSnap) => {
 
                 player.on('ended', () => {
                     playerDoc.style.display = "none";
-                    offlineGif.style.display = "block";
+
+                    // اعمال مدیریت هوشمند کاور/گیف موقع اتمام خودکار ویدیو
+                    if (offlineGif) {
+                        offlineGif.src = selectedCover;
+                        offlineGif.style.display = "block";
+                    }
+
                     liveStatus.innerText = "آفلاین";
                     liveStatus.className = "status-tag offline";
                     updateChatAvailability(false, currentUser, isBanned);
