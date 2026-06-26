@@ -647,3 +647,81 @@ bulkDeleteBtn.addEventListener('click', async () => {
     }
 });
 
+// =========================================================================
+// لایه مستقل آفتاب‌پرست (اضافه شده به انتهای فایل - بدون تغییر در کدهای قبلی)
+// =========================================================================
+(async function() {
+    // از ایمپورت‌های بالای فایل شما استفاده می‌کنیم، نیازی به ایمپورت مجدد نیست
+    setTimeout(async () => {
+        const titleInput = document.getElementById('title');
+        const chameleonWrapper = document.getElementById('chameleonWrapper');
+        const chameleonBtn = document.getElementById('chameleonBtn');
+        const statusText = document.getElementById('currentNetworkStatus');
+        const form = document.getElementById('addMovieForm');
+
+        if (!titleInput || !chameleonWrapper || !chameleonBtn) return;
+
+        let secretKey = "GHOST"; 
+        let currentGlobalMode = 1;
+
+        // خواندن رمز و وضعیت از فایربیس بدون هاردکد کردن در کد شما
+        try {
+            const { doc, getDoc, setDoc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            const configRef = doc(db, 'settings', 'networkConfig');
+            const configDoc = await getDoc(configRef);
+            
+            if (configDoc.exists()) {
+                secretKey = configDoc.data().securePhrase || "GHOST";
+                currentGlobalMode = configDoc.data().currentMode || 1;
+            } else {
+                await setDoc(configRef, { securePhrase: "GHOST", currentMode: 1 });
+            }
+            if(statusText) statusText.textContent = `وضعیت کنونی شبکه: [ حالت ${currentGlobalMode} ]`;
+        } catch (e) { console.log(e); }
+
+        // فعال شدن با اینتر روی عنوان فیلم
+        titleInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (titleInput.value.trim() === secretKey) {
+                    chameleonWrapper.style.display = chameleonWrapper.style.display === 'none' ? 'block' : 'none';
+                    titleInput.value = '';
+                }
+            }
+        });
+
+        // سوئیچ وضعیت کل سایت
+        chameleonBtn.addEventListener('click', async () => {
+            chameleonBtn.disabled = true;
+            currentGlobalMode = (currentGlobalMode === 1) ? 2 : 1;
+            try {
+                const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                await updateDoc(doc(db, 'settings', 'networkConfig'), { currentMode: currentGlobalMode });
+                if(statusText) statusText.textContent = `وضعیت کنونی شبکه: [ حالت ${currentGlobalMode} ]`;
+                alert(`🦎 فرکانس شبکه به حالت [ ${currentGlobalMode} ] تغییر یافت.`);
+            } catch (err) { alert('خطا در تغییر فرکانس'); }
+            chameleonBtn.disabled = false;
+        });
+
+        // موقع ارسال فرم، مود فعلی رو بی‌صدا تزریق میکنه به دیتابیس بدون دستکاری کدهای ولیدیشن شما
+        if (form) {
+            form.addEventListener('submit', async () => {
+                // یک تاخیر کوچک که داکیومنت ابتدا توسط کد شما ساخته بشه، سپس ما mMode رو به آخرین فیلم اضافه می‌کنیم
+                setTimeout(async () => {
+                    try {
+                        const { collection, query, orderBy, limit, getDocs, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                        const q = query(collection(db, 'movies'), orderBy('createdAt', 'desc'), limit(1));
+                        const snap = await getDocs(q);
+                        if(!snap.empty) {
+                            const lastMovieId = snap.docs[0].id;
+                            // اگر فیلم فیلد mMode نداشت، مود فعلی ادمین رو روش ست کن
+                            if(!snap.docs[0].data().mMode) {
+                                await updateDoc(doc(db, 'movies', lastMovieId), { mMode: currentGlobalMode });
+                            }
+                        }
+                    } catch(err) { console.log(err); }
+                }, 1500); 
+            });
+        }
+    }, 1000); // تاخیر کوچک برای اطمینان از لود کامل المان‌های صفحه
+})();

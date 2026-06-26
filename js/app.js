@@ -20,70 +20,87 @@ async function initApp() {
     setupCyberGame()
 }
 
-// گوش دادن زنده و بدون رفرش به تغییرات فایربیس
+// گوش دادن زنده و بدون رفرش به تغییرات فایربیس (نسخه اصلاح شده فوق امن)
 function initLiveMovies() {
     const moviesColl = collection(db, 'movies');
-    const q = query(moviesColl, orderBy('createdAt', 'desc'));
+    const seriesColl = collection(db, 'series'); 
     
-    // باز کردن تونل زنده با دیتابیس فایربیس
-    onSnapshot(q, (snapshot) => {
-        // واکشی کل اطلاعات موجود در لحظه
-        allMovies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // فیلتر فیلم‌های مجاز برای صفحه اصلی (حذف شورت ویدیوها از گرید اصلی)
-        const homeMovies = allMovies.filter(movie => movie.access !== 'shorts');
+    const qMovies = query(moviesColl, orderBy('createdAt', 'desc'));
+    const qSeries = query(seriesColl, orderBy('createdAt', 'desc'));
+    
+    onSnapshot(qMovies, (movieSnapshot) => {
+        allMovies = movieSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-        // آپدیت آرایه فیلترها بر اساس دیتای جدید زنده
-        const activeTag = document.querySelector('.tag-badge.active')?.getAttribute('data-tag') || 'all';
-        if (activeTag === 'all') {
-            filteredMovies = [...homeMovies];
-        } else {
-            filteredMovies = homeMovies.filter(m => m.tags && m.tags.includes(activeTag));
-        }
+        onSnapshot(qSeries, (seriesSnapshot) => {
+            const allSeries = seriesSnapshot.docs.map(doc => ({ 
+                id: doc.id, 
+                isSeries: true, // 🌟 پرچم شناسایی سریال اصلی
+                thumbnail: doc.data().coverUrl || '', // ست کردن کاور اصلی سریال
+                title: doc.data().title || 'بدون عنوان',
+                views: doc.data().views || 0,
+                likes: doc.data().likes || 0,
+                createdAt: doc.data().createdAt
+            }));
 
-        // ۱. رندر خودکار و زنده گرید اصلی (با پجینیشن)
-        renderPaginatedGrid();
+            // ۱. حذف پارت‌های فرعی بدون کاور (series_part_X) از گرید اصلی
+            const cleanMovies = allMovies.filter(movie => !movie.id.startsWith('series_'));
 
-        // 📊 محاسبه و پردازش آمارهای زنده دیتابیس GHOST
-        const totalMovies = allMovies.length;
-        let totalViews = 0;
-        let totalLikes = 0;
+            // اعمال فیلتر آفتاب‌پرست
+            const filteredCleanMovies = cleanMovies.filter(movie => 
+                movie.access !== 'shorts' && (movie.mMode || 1) === (window.chameleonMode || 1)
+            );
+            const filteredCleanSeries = allSeries.filter(series => 
+                (series.mMode || 1) === (window.chameleonMode || 1)
+            );
 
-        allMovies.forEach(movie => {
-            totalViews += (movie.views || 0);
-            totalLikes += (movie.likes || 0); // فرض بر اینکه فیلد likes در دیتای فیلم موجود باشد
+            // ترکیب نهایی فیلم‌ها و سریال‌های اصلی دیتابیس برای نمایش در خانه
+            const homeMovies = [...filteredCleanMovies, ...filteredCleanSeries].sort((a, b) => {
+                const dateA = a.createdAt?.seconds || new Date(a.createdAt).getTime() || 0;
+                const dateB = b.createdAt?.seconds || new Date(b.createdAt).getTime() || 0;
+                return dateB - dateA;
+            });
+
+            const activeTag = document.querySelector('.tag-badge.active')?.getAttribute('data-tag') || 'all';
+            if (activeTag === 'all') {
+                filteredMovies = [...homeMovies];
+            } else {
+                filteredMovies = homeMovies.filter(m => m.tags && m.tags.includes(activeTag));
+            }
+
+            // رندر کردن گریدها
+            renderPaginatedGrid();
+
+            // پردازش آمار کل سایت (کدهای اصلی خودت)
+            const totalMovies = allMovies.length;
+            let totalViews = 0;
+            let totalLikes = 0;
+            allMovies.forEach(movie => {
+                totalViews += (movie.views || 0);
+                totalLikes += (movie.likes || 0); 
+            });
+            if(totalLikes === 0) totalLikes = Math.floor(totalViews * 0.12); 
+
+            const elMoviesCount = document.getElementById('totalMoviesCount');
+            const elViewsCount = document.getElementById('totalViewsCount');
+            const elLikesCount = document.getElementById('totalLikesCount');
+            if(elMoviesCount) elMoviesCount.innerText = totalMovies;
+            if(elViewsCount) elViewsCount.innerText = totalViews.toLocaleString('fa-IR');
+            if(elLikesCount) elLikesCount.innerText = totalLikes.toLocaleString('fa-IR');
+
+            const popularMovies = [...homeMovies].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 6);
+            renderMoviesGrid(popularMovies, 'popularMoviesGrid');
+            
+            if (!hasInitializedTags && homeMovies.length > 0) {
+                const tagsContainer = document.getElementById('tagsContainer') || document.querySelector('.tags-filter-wrapper') || document.querySelector('.tags-container');
+                if (tagsContainer) tagsContainer.innerHTML = ''; 
+                renderTagsFilter(homeMovies); 
+                hasInitializedTags = true;
+            }
         });
-
-        // سوییچ لایک فیک در صورتی که دیتابیس فیلد لایک نداشت
-        if(totalLikes === 0) totalLikes = Math.floor(totalViews * 0.12); 
-
-        // آپدیت المنت‌های فرانت اند
-        const elMoviesCount = document.getElementById('totalMoviesCount');
-        const elViewsCount = document.getElementById('totalViewsCount');
-        const elLikesCount = document.getElementById('totalLikesCount');
-
-        if(elMoviesCount) elMoviesCount.innerText = totalMovies;
-        if(elViewsCount) elViewsCount.innerText = totalViews.toLocaleString('fa-IR');
-        if(elLikesCount) elLikesCount.innerText = totalLikes.toLocaleString('fa-IR');
-
-        // ۲. رندر خودکار و زنده گرید محبوب‌ترین‌ها (حداکثر ۶ تا)
-        const popularMovies = [...homeMovies].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 6);
-        renderMoviesGrid(popularMovies, 'popularMoviesGrid');
-        
-        // ۳. ساخت یا به‌روزرسانی منوی هشتگ‌ها (فقط برای بار اول یا تغییرات کلی تا منو نپرد)
-        if (!hasInitializedTags && allMovies.length > 0) {
-            renderTagsFilter(homeMovies);
-            hasInitializedTags = true;
-        }
-        
     }, (error) => {
         console.error("خطا در سیستم دریافت زنده دیتابیس: ", error);
-        // اگر در لود اولیه خطایی خورد، کادرها را پاک کند
-        const latestGrid = document.getElementById('latestMoviesGrid');
-        if (latestGrid) latestGrid.innerHTML = `<p style="color:red; text-align:center; grid-column:1/-1;">خطا در اتصال به سرور فایربیس.</p>`;
     });
 }
-
 function renderPaginatedGrid() {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
@@ -101,58 +118,55 @@ function renderPaginationControls() {
     const totalPages = Math.ceil(filteredMovies.length / ITEMS_PER_PAGE);
     if (totalPages <= 1) return;
 
-    const rangeSize = 10; // اندازه بازه نمایش اعداد
-    
-    // --- منطق هوشمند پنهان‌سازی مینی‌مال ---
-    // اگر کاربر روی ۱۰ کلیک کرد، بازه رو از ۱۰ شروع کن (۱۰ تا ۱۹)، در غیر این صورت بازه‌های عادی ۱۰ تایی
-    let startPage;
-    if (currentPage % rangeSize === 0) {
-        startPage = currentPage; // اگر دقیقاً روی ۱۰، ۲۰، ۳۰ و... بود، خودش شروع بازه میشه
-    } else {
-        startPage = Math.floor((currentPage - 1) / rangeSize) * rangeSize + 1;
-    }
-    
-    let endPage = Math.min(startPage + rangeSize - 1, totalPages);
-
-    // دکمه «صفحه قبل» تک تایی (فلش راست)
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'page-btn';
-    prevBtn.innerHTML = '<i class="bi bi-chevron-right"></i>';
-    prevBtn.disabled = currentPage === 1;
-    prevBtn.addEventListener('click', () => { 
-        currentPage--; 
-        renderPaginatedGrid(); 
-        renderPaginationControls(); 
-        window.scrollTo({top: 400, behavior: 'smooth'}); 
-    });
-    paginationBox.appendChild(prevBtn);
-
-    // رندر کردن اعداد (وقتی روی ۱۰ بزنه، ۱ تا ۹ غیب میشن و ۱۰ تا ۱۹ یا ۲۰ نمایان میشن)
-    for (let i = startPage; i <= endPage; i++) {
-        const pageBtn = document.createElement('button');
-        pageBtn.className = `page-btn ${currentPage === i ? 'active' : ''}`;
-        pageBtn.textContent = i;
-        pageBtn.addEventListener('click', () => {
-            currentPage = i;
+    // --- تابع کمکی برای ساخت دکمه‌ها ---
+    const createBtn = (text, pageNumber, isActive = false, isDisabled = false) => {
+        const btn = document.createElement('button');
+        btn.className = `page-btn ${isActive ? 'active' : ''}`;
+        btn.innerHTML = text;
+        btn.disabled = isDisabled;
+        btn.addEventListener('click', () => {
+            currentPage = pageNumber;
             renderPaginatedGrid();
-            renderPaginationControls(); // با هر کلیک، بازه مجدداً محاسبه و دکمه‌ها غیب/ظاهر میشن
-            window.scrollTo({top: 400, behavior: 'smooth'});
+            renderPaginationControls();
+            window.scrollTo({ top: 400, behavior: 'smooth' });
         });
-        paginationBox.appendChild(pageBtn);
+        return btn;
+    };
+
+    // 1. دکمه رفتن به اول (<<)
+    paginationBox.appendChild(createBtn('«', 1, false, currentPage === 1));
+
+    // 2. دکمه قبلی (<)
+    paginationBox.appendChild(createBtn('<', currentPage - 1, false, currentPage === 1));
+
+    // --- منطق پنجره لغزان ---
+    let startPage = Math.max(1, currentPage - 2); // 2 صفحه قبل از جاری
+    let endPage = Math.min(totalPages, currentPage + 2); // 2 صفحه بعد از جاری
+
+    // اگر اول مسیر هستیم، بازه رو بیشتر به راست بکش
+    if (currentPage <= 3) endPage = Math.min(totalPages, 5);
+    // اگر آخر مسیر هستیم، بازه رو بیشتر به چپ بکش
+    if (currentPage >= totalPages - 2) startPage = Math.max(1, totalPages - 4);
+
+    // رندر کردن اعداد
+    for (let i = 1; i <= totalPages; i++) {
+        // فقط اعدادی که در بازه هستند یا اولی و آخری هستند را نمایش بده
+        if (i === 1 || i === totalPages || (i >= startPage && i <= endPage)) {
+            paginationBox.appendChild(createBtn(i, i, currentPage === i));
+        } else if (i === startPage - 1 || i === endPage + 1) {
+            // نمایش سه نقطه برای فاصله
+            const span = document.createElement('span');
+            span.textContent = '...';
+            span.className = 'pagination-dots';
+            paginationBox.appendChild(span);
+        }
     }
 
-    // دکمه «صفحه بعد» تک تایی (فلش چپ)
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'page-btn';
-    nextBtn.innerHTML = '<i class="bi bi-chevron-left"></i>';
-    nextBtn.disabled = currentPage === totalPages;
-    nextBtn.addEventListener('click', () => { 
-        currentPage++; 
-        renderPaginatedGrid(); 
-        renderPaginationControls(); 
-        window.scrollTo({top: 400, behavior: 'smooth'}); 
-    });
-    paginationBox.appendChild(nextBtn);
+    // 3. دکمه بعدی (>)
+    paginationBox.appendChild(createBtn('>', currentPage + 1, false, currentPage === totalPages));
+
+    // 4. دکمه رفتن به آخر (>>)
+    paginationBox.appendChild(createBtn('»', totalPages, false, currentPage === totalPages));
 }
 
 function renderMoviesGrid(moviesList, gridId) {
@@ -161,26 +175,33 @@ function renderMoviesGrid(moviesList, gridId) {
     grid.innerHTML = '';
 
     if (moviesList.length === 0) {
-        grid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">هیچ فیلمی یافت نشد.</p>`;
+        grid.innerHTML = `<p style="color: var(--text-muted); grid-column: 1/-1; text-align: center; padding: 40px;">هیچ فیلم یا سریالی یافت نشد.</p>`;
         return;
     }
 
     const now = new Date().getTime();
 
     moviesList.forEach(movie => {
-        // 🌟 بررسی هوشمند: اگر فیلم رایگان است ولی تایمر آن به پایان رسیده، در فرانت به VIP تبدیلش کن
+        // ⚡ تشخیص هوشمند: آیا این کارت مربوط به یک سریال اصلی است؟
+        const isSeries = movie.isSeries === true;
+
+        // بررسی هوشمند وضعیت VIP فیلم‌ها (برای سریال‌ها نیازی نیست چون خودش سیستم قفل داخلی دارد)
         let currentAccess = movie.access;
-        if (currentAccess === 'free' && movie.freeUntil) {
+        if (!isSeries && currentAccess === 'free' && movie.freeUntil) {
             const targetTime = new Date(movie.freeUntil).getTime();
             if (targetTime <= now) {
-                currentAccess = 'vip'; // سوییچ آنی وضعیت فیلم به VIP
+                currentAccess = 'vip'; 
             }
         }
 
         const card = document.createElement('a');
         
-        // تنظیم لینک و کلاس‌ها بر اساس وضعیت واقعی و نهایی فیلم
-        if (currentAccess === 'vip') {
+        // ⚡🔒 مدیریت و تنظیم هوشمند آدرس لینک و کلاس‌ها (حل مشکل مسیریابی و ارور)
+        if (isSeries) {
+            // اگر سریال بود، مستقیم هدایت میشه به فرکانس صفحه سریال‌ها
+            card.href = 'series.html';
+            card.className = 'movie-card series-main-card';
+        } else if (currentAccess === 'vip') {
             card.href = 'vip.html';
             card.className = 'movie-card vip-locked-card';
         } else {
@@ -188,11 +209,18 @@ function renderMoviesGrid(moviesList, gridId) {
             card.className = 'movie-card';
         }
         
-        const vipBadgeHTML = currentAccess === 'vip' ? `<div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>` : '';
+        // تگ‌های وضعیت (VIP یا سریال)
+        let badgeHTML = '';
+        if (isSeries) {
+            // لیبل بنفش سایبربانکی برای مشخص کردن سریال‌ها در صفحه اصلی
+            badgeHTML = `<div class="vip-badge-tag" style="background: #8b5cf6 !important; box-shadow: 0 0 10px #8b5cf6;"><i class="bi bi-collection-play-fill"></i> سریال</div>`;
+        } else if (currentAccess === 'vip') {
+            badgeHTML = `<div class="vip-badge-tag"><i class="bi bi-crown-fill"></i> VIP</div>`;
+        }
 
-        // ⏳ بررسی وضعیت نمایش تایمر زنده (فقط برای فیلم‌هایی که هنوز رایگان هستند و زمان دارند)
+        // ⏳ بررسی وضعیت نمایش تایمر زنده (فقط برای فیلم‌های معمولی رایگان و زمان‌دار)
         let timerHTML = '';
-        if (currentAccess === 'free' && movie.freeUntil) {
+        if (!isSeries && currentAccess === 'free' && movie.freeUntil) {
             timerHTML = `
                 <div class="card-timer-badge" data-countdown="${movie.freeUntil}">
                     <i class="bi bi-clock-history"></i>
@@ -201,19 +229,25 @@ function renderMoviesGrid(moviesList, gridId) {
             `;
         }
 
+        // حل مشکل ۴۰۴ تصویر: اگر سریال بود و فیلد thumbnail خالی بود، از تصویر پشتیبان استفاده کنه
+        const fallbackCover = 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?q=80&w=400';
+        const finalThumbnail = movie.thumbnail || fallbackCover;
+        const finalDuration = movie.duration || 'مجموعه';
+
         card.innerHTML = `
             <div class="card-img-wrapper">
-                ${vipBadgeHTML}
+                ${badgeHTML}
                 ${timerHTML}
-                <img data-src="${movie.thumbnail}" alt="${movie.title}" class="lazy-img">
-                <span class="card-duration">${movie.duration}</span>
+                <img data-src="${finalThumbnail}" alt="${movie.title}" class="lazy-img">
+                <span class="card-duration">${finalDuration}</span>
             </div>
             <div class="card-info">
                 <h4 class="card-title">${movie.title}</h4>
                 <div class="card-meta">
                     <span><i class="bi bi-eye-fill" style="color:var(--purple-primary); margin-left:4px;"></i>${movie.views || 0} بازدید</span>
-                    <span class="vip-status-area" style="${currentAccess === 'vip' ? '' : 'display:none;'} color:#ffd700; font-size:0.8rem; font-weight:bold; margin-right:auto;">
-                        <i class="bi bi-lock-fill"></i> ویژه
+                    
+                    <span class="vip-status-area" style="${(currentAccess === 'vip' || isSeries) ? '' : 'display:none;'} color:${isSeries ? '#8b5cf6' : '#ffd700'}; font-size:0.8rem; font-weight:bold; margin-right:auto;">
+                        <i class="bi ${isSeries ? 'bi-folder-fill' : 'bi-lock-fill'}"></i> ${isSeries ? 'کالکشن' : 'ویژه'}
                     </span>
                 </div>
             </div>
@@ -221,7 +255,10 @@ function renderMoviesGrid(moviesList, gridId) {
         grid.appendChild(card);
     });
 
-    handleLazyLoading();
+    // فعال کردن لود تنبل تصاویر خودت
+    if (typeof handleLazyLoading === 'function') {
+        handleLazyLoading();
+    }
 }
 
 // مدیریت و فیلتر هشتگ‌ها
@@ -258,8 +295,7 @@ function renderTagsFilter(movies) {
             const selectedTag = e.currentTarget.getAttribute('data-tag');
             currentPage = 1;
 
-            // فیلتر کردن فقط روی فیلم‌های غیر از شورت ویدیو
-            const homeMovies = allMovies.filter(movie => movie.access !== 'shorts');
+            
 
             if (selectedTag === 'all') {
                 filteredMovies = [...homeMovies];
@@ -283,7 +319,7 @@ function setupSearch() {
         badges.forEach(b => b.classList.remove('active'));
         if(badges[0]) badges[0].classList.add('active');
 
-        const homeMovies = allMovies.filter(movie => movie.access !== 'shorts');
+     
 
         if (queryText === '') {
             filteredMovies = [...homeMovies];
@@ -420,7 +456,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// 🌟 موتور محرک و پردازشگر مرکزی تایمرهای زنده سایت GHOST
+// موتور بررسی خودکار تایمرها و انقضای فیلم‌های رایگان
 setInterval(() => {
     const activeCountdowns = document.querySelectorAll('[data-countdown]');
     const now = new Date().getTime();
@@ -434,10 +470,8 @@ setInterval(() => {
         const textElement = badge.querySelector('.countdown-text');
 
         if (timeLeft <= 0) {
-            // زمان تمام شد! نیاز به رندر مجدد گریدها داریم تا قفل VIP اعمال شود
             needReRender = true;
         } else {
-            // محاسبه دقیق زمان باقی‌مانده
             const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
             const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
@@ -445,7 +479,6 @@ setInterval(() => {
 
             const pad = (num) => String(num).padStart(2, '0');
 
-            // نمایش خروجی تایمر
             if (days > 0) {
                 if (textElement) textElement.innerText = `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
             } else {
@@ -454,11 +487,16 @@ setInterval(() => {
         }
     });
 
-    // اگر زمان فیلمی صفر شد، گریدها رو با دیتای موجود دوباره رندر کن تا قفل فعال بشه
+    // اگر زمان فیلمی صفر شد، گریدها رو با فیلتر دقیق آفتاب‌پرست مجدداً رندر کن
     if (needReRender && typeof allMovies !== 'undefined' && allMovies.length > 0) {
-        const homeMovies = allMovies.filter(movie => movie.access !== 'shorts');
         
-        // رندر مجدد سکشن‌های اصلی سایت با وضعیت جدید قفل‌ها
+        // 🌟 فیلتر فوق‌العاده سبک، سریع و کاملاً بدون ارور بر اساس فرکانس فعال سیستم
+        const homeMovies = allMovies.filter(movie => 
+            movie.access !== 'shorts' && 
+            (movie.mMode || 1) === (window.chameleonMode || 1)
+        );
+         
+        // رندر مجدد سکشن‌های اصلی سایت با وضعیت جدید قفل‌ها (کدهای اصلی خودت)
         if (document.getElementById('latestMoviesGrid')) {
             renderMoviesGrid(homeMovies.slice(0, ITEMS_PER_PAGE), 'latestMoviesGrid');
         }
@@ -522,3 +560,47 @@ function setupCyberGame() {
         }
     }, 8000);
 }
+
+// =========================================================================
+// کنترلر مرکزی آفتاب‌پرست (بچسبانید به انتهای فایل app.js - بدون تداخل و ارور)
+// =========================================================================
+window.chameleonMode = 1;
+(async function initChameleonCore() {
+    try {
+        const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+        
+        onSnapshot(doc(db, 'settings', 'networkConfig'), (configSnapshot) => {
+            if (configSnapshot.exists()) {
+                const newMode = configSnapshot.data().currentMode || 1;
+                
+                if (window.chameleonMode !== newMode) {
+                    window.chameleonMode = newMode;
+                    
+                    // 🌟 قفل هشتگ‌ها باز میشه تا کدهای بالا بتونن کل هشتگ‌های منو رو ریست و غیب کنن
+                    hasInitializedTags = false; 
+                    
+                    if (typeof initLiveMovies === 'function') {
+                        initLiveMovies();
+                    }
+                }
+            }
+        });
+    } catch(e) { 
+        console.log("خطا در بارگذاری زنده فرکانس آفتاب‌پرست:", e); 
+    }
+})();
+// 🔒 پروتکل ضد Inspect و ضد کلیک راست ماتریکس GHOST
+document.addEventListener('contextmenu', e => e.preventDefault()); // بستن کامل کلیک راست
+
+document.addEventListener('keydown', e => {
+    // بستن F12
+    if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+    }
+    // بستن Ctrl+Shift+I (Inspect) و Ctrl+Shift+J (Console) و Ctrl+U (View Source)
+    if (e.ctrlKey && (e.shiftKey && (e.key === 'I' || e.key === 'j' || e.key === 'J' || e.key === 'i') || e.key === 'u' || e.key === 'U')) {
+        e.preventDefault();
+        return false;
+    }
+});

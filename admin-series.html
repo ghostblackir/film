@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت سریال‌ها | GHOST ADMIN</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style-enhancer.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .admin-box {
+            background: #151520;
+            border: 1px solid #8b5cf6;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+            margin-bottom: 40px;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #00ffcc; font-weight: bold; }
+        .form-control {
+            width: 100%;
+            background: #0b0b0f;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 6px;
+            color: #fff;
+            font-family: inherit;
+        }
+        .form-control:focus { border-color: #00ffcc; outline: none; box-shadow: 0 0 10px rgba(0, 255, 204, 0.3); }
+        .part-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .btn-add-part {
+            background: rgba(0, 255, 204, 0.1);
+            color: #00ffcc;
+            border: 1px dashed #00ffcc;
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-add-part:hover { background: #00ffcc; color: #000; }
+        .btn-submit {
+            background: #8b5cf6;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+        }
+        .btn-submit:hover { background: #6d28d9; }
+        
+        /* استایل جدول مدیریت */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #151520;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .admin-table th, .admin-table td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .admin-table th { background: rgba(139, 92, 246, 0.2); color: #00ffcc; }
+        .btn-action { padding: 4px 10px; border-radius: 4px; border: none; cursor: pointer; margin-left: 5px; }
+        .btn-edit { background: #ffaa00; color: #000; }
+        .btn-delete { background: #ef4444; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; height: 70px;">
+            <h1 style="color: #8b5cf6; font-size: 1.5rem;"><i class="bi bi-sliders"></i>  مدیریت سریال‌های GHOST</h1>
+            <a href="series.html" style="color: #00ffcc; text-decoration: none;" target="_blank">مشاهده صفحه سریال‌ها <i class="bi bi-box-arrow-up-right"></i></a>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 40px;">
+        
+        <div class="admin-box">
+            <h2 id="formTitle" style="color: #fff; margin-bottom: 20px;"><i class="bi bi-plus-circle-fill"></i> انتشار سریال جدید</h2>
+            <form id="seriesForm">
+                <input type="hidden" id="editingId" value="">
+                
+                <div class="form-group">
+                    <label>عنوان سریال *</label>
+                    <input type="text" id="seriesTitle" class="form-control" placeholder="مثلا: سریال آقای ربات - فصل اول" required>
+                </div>
+
+                <div class="form-group">
+                    <label>توضیحات سریال (اختیاری)</label>
+                    <textarea id="seriesDesc" class="form-control" rows="3" placeholder="توضیحات مختصر در مورد داستان سریال..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>لینک کاور سریال *</label>
+                    <input type="url" id="seriesCover" class="form-control" placeholder="https://example.com/cover.jpg" required>
+                </div>
+
+                <div class="form-group">
+                    <label>لینک ویدیوها و زمان پارت‌ها *</label>
+                    <div id="partsContainer">
+                        <div class="part-row">
+                            <input type="url" class="form-control part-link" placeholder="لینک ویدیو پارت 1" required>
+                            <input type="text" class="form-control part-duration" placeholder="تایم (مثلا 45:20)" style="max-width: 150px;" required>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-add-part" id="addPartBtn"><i class="bi bi-plus-lg"></i> افزودن پارت جدید</button>
+                </div>
+
+                <div class="form-group">
+                    <label>نوع دسترسی *</label>
+                    <select id="seriesAccess" class="form-control">
+                        <option value="free">رایگان (Free)</option>
+                        <option value="vip">ویژه (VIP)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>تایمر و ساعت رایگان بودن (اختیاری - مخصوص ویدیوهای VIP)</label>
+                    <input type="datetime-local" id="freeUntil" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>هشتگ‌ها (اختیاری - با کاما (,) جدا کنید)</label>
+                    <input type="text" id="seriesTags" class="form-control" placeholder="اکشن, سایبرپانک, تکنولوژی">
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">انتشار سریال در شبکه</button>
+                <button type="button" id="cancelEditBtn" class="btn-submit" style="background:#4a5568; margin-top:10px; display:none;">انصراف از ویرایش</button>
+            </form>
+        </div>
+
+        <div class="admin-box">
+            <h2 style="color: #fff; margin-bottom: 15px;"><i class="bi bi-layer-forward"></i> سریال‌های منتشر شده روی پلتفرم</h2>
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>کاور</th>
+                            <th>عنوان سریال</th>
+                            <th>دسترسی</th>
+                            <th>تعداد پارت</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminSeriesList">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin-box" style="border-color: var(--neon-pink); box-shadow: 0 0 20px rgba(255, 0, 85, 0.2);">
+            <h2 style="color: #fff; margin-bottom: 20px;"><i class="bi bi-shield-shaded" style="color: var(--neon-pink);"></i> هسته مدیریت فرکانس و آمار فانتوم (فیکر هوشمند)</h2>
+            <p style="color: #a0aec0; font-size: 0.9rem; margin-bottom: 20px;">دادا عدد پایه رو وارد کن؛ سیستم به صورت خودکار برای هر سریال یک نوسان تصادفی (بالا/پایین) اعمال می‌کنه تا آمار کاملاً طبیعی به نظر برسه.</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="color: #ffd700;">بازدید پایه *</label>
+                    <input type="number" id="baseViews" class="form-control" placeholder="مثلا: 1200" min="0">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="color: #00ffcc;">لایک پایه *</label>
+                    <input type="number" id="baseLikes" class="form-control" placeholder="مثلا: 450" min="0">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="color: var(--neon-pink);">دیسلایک پایه *</label>
+                    <input type="number" id="baseDislikes" class="form-control" placeholder="مثلا: 12" min="0">
+                </div>
+            </div>
+
+            <button type="button" class="btn-submit" id="injectStatsBtn" style="background: var(--neon-pink); box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);">
+                <i class="bi bi-lightning-fill"></i> تزریق فرکانس آمار به تمام کارت‌ها
+            </button>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import { db, auth } from './js/firebase.js';
+        import { collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, query, orderBy, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const partsContainer = document.getElementById('partsContainer');
+        const addPartBtn = document.getElementById('addPartBtn');
+        const seriesForm = document.getElementById('seriesForm');
+        const adminSeriesList = document.getElementById('adminSeriesList');
+        const editingIdInput = document.getElementById('editingId');
+        const formTitle = document.getElementById('formTitle');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+        // اضافه کردن کادر پارت جدید داینامیک
+        addPartBtn.addEventListener('click', () => {
+            const currentParts = partsContainer.querySelectorAll('.part-row').length;
+            const newRow = document.createElement('div');
+            newRow.className = 'part-row';
+            newRow.innerHTML = `
+                <input type="url" class="form-control part-link" placeholder="لینک ویدیو پارت ${currentParts + 1}" required>
+                <input type="text" class="form-control part-duration" placeholder="تایم" style="max-width: 150px;" required>
+                <button type="button" class="btn-action btn-delete remove-part-btn" style="padding:12px;"><i class="bi bi-trash-fill"></i></button>
+            `;
+            partsContainer.appendChild(newRow);
+
+            // عملکرد حذف پارت داینامیک
+            newRow.querySelector('.remove-part-btn').addEventListener('click', () => {
+                newRow.remove();
+            });
+        });
+
+        // دریافت لیست سریال‌ها و رندر در جدول ادمین
+        function loadAdminSeries() {
+            const q = query(collection(db, 'series'), orderBy('createdAt', 'desc'));
+            onSnapshot(q, (snapshot) => {
+                adminSeriesList.innerHTML = '';
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><img src="${data.coverUrl}" style="width:40px; height:50px; object-fit:cover; border-radius:4px;"></td>
+                        <td><strong>${data.title}</strong></td>
+                        <td><span style="color:${data.isVip==='vip'?'#ffaa00':'#00ffcc'}">${data.isVip==='vip'?'VIP':'رایگان'}</span></td>
+                        <td>${data.parts ? data.parts.length : 0} پارت</td>
+                        <td>
+                            <button class="btn-action btn-edit" onclick="editSeries('${doc.id}', ${navigator.userAgent ? 'this' : ''})"><i class="bi bi-pencil-square"></i> ویرایش</button>
+                            <button class="btn-action btn-delete" onclick="deleteSeries('${doc.id}')"><i class="bi bi-trash3-fill"></i> حذف</button>
+                        </td>
+                    `;
+                    // الصاق ابرداده‌ها به المنت‌های دکمه برای دسترسی راحت‌تر در متدها
+                    tr.querySelector('.btn-edit').addEventListener('click', () => populateFormForEdit(doc.id, data));
+                    tr.querySelector('.btn-delete').addEventListener('click', () => deleteSeriesItem(doc.id));
+                    adminSeriesList.appendChild(tr);
+                });
+            });
+        }
+
+        // ذخیره یا آپدیت فرم
+        seriesForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // جمع آوری داده های پارت ها
+            const partRows = partsContainer.querySelectorAll('.part-row');
+            const partsArray = [];
+            partRows.forEach(row => {
+                const link = row.querySelector('.part-link').value;
+                const duration = row.querySelector('.part-duration').value;
+                partsArray.push({ link, duration });
+            });
+
+            const seriesData = {
+                title: document.getElementById('seriesTitle').value,
+                description: document.getElementById('seriesDesc').value,
+                coverUrl: document.getElementById('seriesCover').value,
+                isVip: document.getElementById('seriesAccess').value,
+                freeUntil: document.getElementById('freeUntil').value || null,
+                tags: document.getElementById('seriesTags').value,
+                parts: partsArray,
+                updatedAt: serverTimestamp()
+            };
+
+            const editingId = editingIdInput.value;
+
+            try {
+                if (editingId) {
+                    // حالت ویرایش
+                    await updateDoc(doc(db, 'series', editingId), seriesData);
+                    alert('سریال با موفقیت بروزرسانی شد!');
+                    resetFormState();
+                } else {
+                    // حالت درج جدید
+                    seriesData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'series'), seriesData);
+                    alert('سریال جدید با موفقیت روی شبکه ماتریکس منتشر شد!');
+                    seriesForm.reset();
+                    resetPartsContainer();
+                }
+            } catch (error) {
+                console.error("Error managing series: ", error);
+                alert('خطا در ذخیره‌سازی اطلاعات!');
+            }
+        });
+
+        function populateFormForEdit(id, data) {
+            editingIdInput.value = id;
+            formTitle.innerHTML = `<i class="bi bi-pencil-square"></i> در حال ویرایش سریال: ${data.title}`;
+            submitBtn.innerText = 'اعمال تغییرات نهایی';
+            cancelEditBtn.style.display = 'block';
+
+            document.getElementById('seriesTitle').value = data.title;
+            document.getElementById('seriesDesc').value = data.description || '';
+            document.getElementById('seriesCover').value = data.coverUrl;
+            document.getElementById('seriesAccess').value = data.isVip;
+            document.getElementById('freeUntil').value = data.freeUntil || '';
+            document.getElementById('seriesTags').value = data.tags || '';
+
+            // بازسازی پارت‌ها
+            partsContainer.innerHTML = '';
+            if (data.parts && data.parts.length > 0) {
+                data.parts.forEach((part, index) => {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'part-row';
+                    newRow.innerHTML = `
+                        <input type="url" class="form-control part-link" value="${part.link}" placeholder="لینک ویدیو پارت ${index + 1}" required>
+                        <input type="text" class="form-control part-duration" value="${part.duration}" placeholder="تایم" style="max-width: 150px;" required>
+                        ${index > 0 ? '<button type="button" class="btn-action btn-delete remove-part-btn" style="padding:12px;"><i class="bi bi-trash-fill"></i></button>' : ''}
+                    `;
+                    partsContainer.appendChild(newRow);
+                    if(index > 0) {
+                        newRow.querySelector('.remove-part-btn').addEventListener('click', () => newRow.remove());
+                    }
+                });
+            } else {
+                resetPartsContainer();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function deleteSeriesItem(id) {
+            if (confirm('دادا مطمئنی می‌خوای این سریالو برای همیشه از گست موویز پاک کنی؟')) {
+                await deleteDoc(doc(db, 'series', id));
+                alert('سریال با موفقیت حذف شد.');
+            }
+        }
+
+        cancelEditBtn.addEventListener('click', resetFormState);
+
+        function resetFormState() {
+            editingIdInput.value = '';
+            formTitle.innerHTML = `<i class="bi bi-plus-circle-fill"></i> انتشار سریال جدید`;
+            submitBtn.innerText = 'انتشار سریال در شبکه';
+            cancelEditBtn.style.display = 'none';
+            seriesForm.reset();
+            resetPartsContainer();
+        }
+
+        function resetPartsContainer() {
+            partsContainer.innerHTML = `
+                <div class="part-row">
+                    <input type="url" class="form-control part-link" placeholder="لینک ویدیو پارت 1" required>
+                    <input type="text" class="form-control part-duration" placeholder="تایم (مثلا 45:20)" style="max-width: 150px;" required>
+                </div>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAdminSeries);
+
+        // 🔮 هسته تزریق آمار تصادفی و هوشمند به کل دیتابیس
+        const injectStatsBtn = document.getElementById('injectStatsBtn');
+
+        injectStatsBtn.addEventListener('click', async () => {
+            const baseViews = parseInt(document.getElementById('baseViews').value);
+            const baseLikes = parseInt(document.getElementById('baseLikes').value);
+            const baseDislikes = parseInt(document.getElementById('baseDislikes').value);
+
+            // بررسی خالی نبودن فیلدها
+            if (isNaN(baseViews) || isNaN(baseLikes) || isNaN(baseDislikes)) {
+                alert('دادا لطفاً هر سه عدد پایه رو وارد کن!');
+                return;
+            }
+
+            if (!confirm('مطمئنی می‌خوای آمار فانتوم رو با فرکانس نوسانی به کل دیتابیس تزریق کنی؟')) {
+                return;
+            }
+
+            injectStatsBtn.disabled = true;
+            injectStatsBtn.innerText = 'در حال بازنویسی ماتریکس آمار...';
+
+            try {
+                // دریافت تمام سریال‌های موجود در دیتابیس
+                const querySnapshot = await getDocs(collection(db, 'series'));
+                
+                // ایجاد یک لوپ ماتریکسی روی تمام داک‌ها
+                const updatePromises = [];
+                
+                querySnapshot.forEach((seriesDoc) => {
+                    // محاسبه نوسان تصادفی (بین 80% تا 120% عدد پایه شما)
+                    // این فرمول باعث می‌شه آمار هر کارت با کارت دیگه کاملاً متفاوت و واقعی باشه
+                    const generateVariant = (base) => {
+                        const minFactor = 0.8; // حداقل ۸۰ درصد عدد پایه
+                        const maxFactor = 1.2; // حداکثر ۱۲۰ درصد عدد پایه
+                        const randomFactor = minFactor + Math.random() * (maxFactor - minFactor);
+                        return Math.floor(base * randomFactor);
+                    };
+
+                    const randomizedViews = generateVariant(baseViews);
+                    const randomizedLikes = generateVariant(baseLikes);
+                    const randomizedDislikes = generateVariant(baseDislikes);
+
+                    // آماده‌سازی پامیس آپدیت دیتابیس
+                    const docRef = doc(db, 'series', seriesDoc.id);
+                    const updatePromise = updateDoc(docRef, {
+                        views: randomizedViews,
+                        likes: randomizedLikes,
+                        dislikes: randomizedDislikes,
+                        statsInjectedAt: serverTimestamp() // تگ زمان برای رهگیری ادمین
+                    });
+                    
+                    updatePromises.push(updatePromise);
+                });
+
+                // اجرای موازی و فوق سریع تمام آپدیت‌ها روی سرور فایربیس
+                await Promise.all(updatePromises);
+
+                alert('⚡ ماتریکس با موفقیت آپدیت شد! آمارها با نوسان تصادفی روی تمام کارت‌ها چفت شدند.');
+                
+                // ریست کردن فرم آمار فیک
+                document.getElementById('baseViews').value = '';
+                document.getElementById('baseLikes').value = '';
+                document.getElementById('baseDislikes').value = '';
+
+            } catch (error) {
+                console.error("Error injecting phantom stats: ", error);
+                alert('خطا در برقراری ارتباط با ماتریکس فایربیس!');
+            } finally {
+                injectStatsBtn.disabled = false;
+                injectStatsBtn.innerHTML = '<i class="bi bi-lightning-fill"></i> تزریق فرکانس آمار به تمام کارت‌ها';
+            }
+        });
+    </script>
+</body>
+</html>

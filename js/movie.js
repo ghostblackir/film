@@ -66,6 +66,94 @@ function showCustomAlert(title, message, isSuccess = false) {
 
 async function loadMovieDetails() {
     const urlParams = new URLSearchParams(window.location.search);
+    
+    // ⚡ ۱. بررسی هوشمند برای پارت‌های سریال GHOST SERIES
+    const isLiveSeries = urlParams.get('live');
+    if (isLiveSeries === 'true') {
+        const savedUrl = localStorage.getItem('targetDownloadUrl');
+        const savedTitle = localStorage.getItem('targetMovieTitle');
+        const customPartId = localStorage.getItem('targetPartId') || 'default_part_id'; // دریافت آیدی جادویی
+
+        if (savedUrl) {
+            document.title = `${savedTitle || "پخش سریال"} - GHOST MOVIES`;
+            
+            const loadingEl = document.getElementById('movieLoading');
+            const contentEl = document.getElementById('movieContent');
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (contentEl) contentEl.classList.remove('hidden');
+
+            // 🎬 راه‌اندازی پلیر اختصاصی تو
+            initCustomPlayer(savedUrl, '');
+
+            // متادیتای متنی پارت سریال
+            if (document.getElementById('movieTitle')) {
+                document.getElementById('movieTitle').textContent = savedTitle || "پخش سریال GHOST";
+            }
+            if (document.getElementById('movieDescription')) {
+                document.getElementById('movieDescription').textContent = "در حال استریم پارت انتخاب شده از شبکه ماتریکس GHOST SERIES.";
+            }
+
+            // تنظیم مقادیر سراسری دانلود
+            targetDownloadUrl = savedUrl;
+            targetMovieTitle = savedTitle || "Serial_Part";
+
+            try {
+                // 👁️ بخش بازدید زنده پارت سریال (دقیقاً مثل سیستم فیلم‌های خودت)
+                const { doc, getDoc, updateDoc, increment } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                const partDocRef = doc(db, 'movies', customPartId); // ذخیره آمار پارت‌ها در کالکشن movies با آیدی منحصربه‌فرد
+                let partDoc = await getDoc(partDocRef);
+
+                // ایجاد مستند موقت در دیتابیس اگر وجود نداشت تا لایک و بازدید کار کنه
+                if (!partDoc.exists()) {
+                    const { setDoc, serverTimestamp } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+                    await setDoc(partDocRef, {
+                        title: savedTitle,
+                        video: savedUrl,
+                        views: 0,
+                        createdAt: serverTimestamp()
+                    });
+                    partDoc = await getDoc(partDocRef);
+                }
+
+                const partData = partDoc.data();
+                movieDataGlobal = partData;
+
+                // افزایش بازدید هوشمند یکبار مصرف برای هر پارت
+                if (!sessionStorage.getItem(`viewed_${customPartId}`)) {
+                    await updateDoc(partDocRef, { views: increment(1) });
+                    sessionStorage.setItem(`viewed_${customPartId}`, 'true');
+                    partData.views = (partData.views || 0) + 1;
+                }
+
+                // نمایش زمان و بازدید واقعی پارت سریال
+                if (document.getElementById('movieViews')) {
+                    document.getElementById('movieViews').innerHTML = `<i class="bi bi-eye-fill"></i> ${partData.views || 0} بازدید پارت`;
+                }
+                if (document.getElementById('movieDuration')) {
+                    document.getElementById('movieDuration').innerHTML = `<i class="bi bi-clock-history"></i> استریم سریال`;
+                }
+
+                // ⚡ فعال‌سازی لایک‌ها و کامنت‌های اختصاصی همین پارت!
+                setupLikes(customPartId, partDocRef, partData);
+                setupComments(customPartId);
+
+            } catch (err) {
+                console.error("Error setting up series part stats:", err);
+            }
+
+            // پنهان کردن فیلم‌های مشابه چون نیازی نیست
+            const similarMoviesSection = document.querySelector('.similar-movies');
+            if (similarMoviesSection) similarMoviesSection.style.display = 'none';
+            
+            if (typeof setupCoinDownloadTrigger === 'function') {
+                setupCoinDownloadTrigger();
+            }
+
+            return; // 🛑 خروج فوری
+        }
+    }
+
+    // 🎬 ۲. روند اصلی و قبلی خودت برای فیلم‌های معمولی (بدون هیچ تغییری)
     const movieId = urlParams.get('id');
 
     if (!movieId) {
@@ -84,30 +172,25 @@ async function loadMovieDetails() {
         }
 
         const movieData = movieDoc.data();
-        movieDataGlobal = movieData; // ذخیره اطلاعات فیلم در متغیر سراسری
+        movieDataGlobal = movieData; 
 
-        // 👁️ افزایش بازدید هوشمند و یکبار مصرف (در هر سشن مرورگر کاربر)
         if (!sessionStorage.getItem(`viewed_${movieId}`)) {
             await updateDoc(movieDocRef, { views: increment(1) });
             sessionStorage.setItem(`viewed_${movieId}`, 'true');
             movieData.views = (movieData.views || 0) + 1;
         }
 
-        // تغییر وضعیت UI از حالت لودینگ
         document.title = `${movieData.title} - GHOST MOVIES`;
         document.getElementById('movieLoading').classList.add('hidden');
         document.getElementById('movieContent').classList.remove('hidden');
 
-        // 🎬 راه‌اندازی اولیه پلیر (فقط ویدیو و کاور را ست میکند ولی پخش نمی‌کند)
         initCustomPlayer(movieData.video, movieData.thumbnail);
 
-        // متادیتای متنی
         document.getElementById('movieTitle').textContent = movieData.title;
         document.getElementById('movieDescription').textContent = movieData.description;
         document.getElementById('movieViews').innerHTML = `<i class="bi bi-eye-fill"></i> ${movieData.views || 0} بازدید`;
         document.getElementById('movieDuration').innerHTML = `<i class="bi bi-clock-history"></i> ${movieData.duration || 'نامشخص'}`;
 
-        // هشتگ‌ها
         const tagsContainer = document.getElementById('movieTags');
         tagsContainer.innerHTML = '';
         if (Array.isArray(movieData.tags)) {
@@ -216,7 +299,7 @@ async function handleAdvertisement(onAdComplete) {
 /* ==========================================================================
    ۲. کنترلر اختصاصی ویدیو پلیر (اصلاح شده برای دکمه پلی و مدیریت تبلیغات)
    ========================================================================== */
-   function initCustomPlayer(videoUrl, thumbnailUrl) {
+function initCustomPlayer(videoUrl, thumbnailUrl) {
     const player = document.getElementById('ghostPlayer');
     const recOverlay = document.getElementById('recommendationOverlay');
     let countdownInterval;
@@ -276,9 +359,9 @@ async function handleAdvertisement(onAdComplete) {
     });
 
     // مدیریت بافرینگ ویدیو اصلی
-    player.addEventListener('waiting', () => { if(adOverlay.classList.contains('hidden')) spinner.classList.remove('hidden'); });
+    player.addEventListener('waiting', () => { if (adOverlay.classList.contains('hidden')) spinner.classList.remove('hidden'); });
     player.addEventListener('playing', () => { spinner.classList.add('hidden'); });
-    player.addEventListener('loadstart', () => { if(adOverlay.classList.contains('hidden')) spinner.classList.remove('hidden'); });
+    player.addEventListener('loadstart', () => { if (adOverlay.classList.contains('hidden')) spinner.classList.remove('hidden'); });
     player.addEventListener('canplay', () => { spinner.classList.add('hidden'); });
 
     // 🌟 رویداد کلیک روی خود ویدیوها (تشخیص خودکار تبلیغ یا ویدیو اصلی)
@@ -865,12 +948,12 @@ function showRecommendations(similarMovies) {
 // تابع مرکزی برای نمایش پیام
 function handleVideoError() {
     if (spinner) spinner.classList.add('hidden'); // مخفی کردن لودینگ
-    
+
     // جلوگیری از نمایش چندباره پیام
-    if (document.getElementById('customAlertOverlay')) return; 
+    if (document.getElementById('customAlertOverlay')) return;
 
     showCustomAlert(
-        'اوخ! یک مشکلی پیش اومد', 
+        'اوخ! یک مشکلی پیش اومد',
         'مشکلی پیش اومد دادا، یه فیلم دیگه ببین شاید خوشت اومد، اینم بگم تقصیر تو نی تقصیر روزگاره!'
     );
 
@@ -883,3 +966,160 @@ function handleVideoError() {
         };
     }
 }
+
+// =========================================================================
+// لایه ریدایرکت اضطراری آفتاب‌پرست (اضافه شده به انتهای فایل movie.js)
+// =========================================================================
+(async function initChameleonMovieGuard() {
+    // ایجاد یک تاخیر کوچک برای اطمینان از لود شدن متغیر movieDataGlobal کدهای شما
+    setTimeout(async () => {
+        try {
+            // ۱. ایمپورت زنده ابزارهای فایربیس
+            const { doc, onSnapshot, collection, query, getDocs } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+
+            let initialModeChecked = false;
+            let currentActiveMode = 1;
+
+            // ۲. شنود زنده وضعیت کلید سراسری سایت
+            onSnapshot(doc(db, 'settings', 'networkConfig'), async (configSnapshot) => {
+                if (!configSnapshot.exists()) return;
+
+                const serverMode = configSnapshot.data().currentMode || 1;
+
+                // اگر بار اول است که پیج لود شده، فقط وضعیت فعلی سرور را ذخیره کن و کاری نکن
+                if (!initialModeChecked) {
+                    currentActiveMode = serverMode;
+                    initialModeChecked = true;
+                    return;
+                }
+
+                // ۳. جادوی اصلی: اگر وسط تماشا، شما فرکانس سرور را تغییر دادی!
+                if (currentActiveMode !== serverMode) {
+                    currentActiveMode = serverMode;
+
+                    // متوقف کردن پلیر فیلم فعلی شما برای قطع صدا و تصویر
+                    const videoPlayer = document.getElementById('ghostPlayer');
+                    if (videoPlayer) {
+                        videoPlayer.pause();
+                    }
+
+                    // ۴. قفل کردن صفحه و نمایش پیغام باحال و گنگ شما وسط صفحه
+                    showChameleonEmergencyOverlay();
+
+                    // ۵. گرفتن تمام فیلم‌های فرکانس جدید از دیتابیس برای انتخاب رندوم
+                    try {
+                        const moviesSnap = await getDocs(query(collection(db, 'movies')));
+                        const validMovies = [];
+
+                        moviesSnap.forEach(doc => {
+                            const data = doc.data();
+                            const mMode = data.mMode || 1;
+                            // تفکیک فیلم‌ها بر اساس فرکانس فعال جدید سرور (حذف شورت ویدیوها)
+                            if (mMode === serverMode && data.access !== 'shorts') {
+                                validMovies.push({ id: doc.id, ...data });
+                            }
+                        });
+
+                        // ۶. تغییر اساسی برای جلوگیری از بازگشت کاربر
+                        setTimeout(() => {
+                            if (validMovies.length > 0) {
+                                const randomMovie = validMovies[Math.floor(Math.random() * validMovies.length)];
+                                const newUrl = `movie.html?id=${randomMovie.id}`;
+
+                                // جایگزین کردن تاریخچه (به جای اضافه کردن)
+                                // اینجوری دیگه دکمه بک، کاربر رو به فیلم سیاه برنمی‌گردونه!
+                                window.location.replace(newUrl);
+                            } else {
+                                window.location.replace('index.html');
+                            }
+                        }, 3500);
+
+                    } catch (err) {
+                        window.location.href = 'index.html';
+                    }
+                }
+            });
+        } catch (e) { console.log(e); }
+    }, 2000);
+    // جلوگیری از بازگشت به عقب در صورت تغییر مود
+    window.addEventListener('popstate', function (event) {
+        // اگر کاربر در مود ۲ (سفید) هست، اجازه نده به عقب (فیلم سیاه) برگرده
+        if (currentActiveMode === 2) {
+            window.location.href = 'index.html';
+        }
+    });
+})();
+
+// 🎨 تابع ساخت باکس شیک سایبرپونکی برای پیغام اختصاصی شما
+function showChameleonEmergencyOverlay() {
+    // اگر از قبل کادر ساخته شده بود پاکش کن
+    const oldOverlay = document.getElementById('chameleonEmergencyAlert');
+    if (oldOverlay) oldOverlay.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'chameleonEmergencyAlert';
+    overlay.innerHTML = `
+        <div class="emergency-card" style="
+            background: #11111b;
+            border: 2px solid #ff0055;
+            box-shadow: 0 0 30px #ff0055;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            direction: rtl;
+            animation: glitchPop 0.3s ease-out;
+        ">
+            <div style="font-size: 50px; color: #ff0055; margin-bottom: 15px; animation: pulseGlow 1s infinite alternate;">
+                ⚠️
+            </div>
+            <h3 style="color: #fff; margin-bottom: 15px; font-weight: bold; font-size: 18px;">اتصال موقت شبکه</h3>
+            <p style="color: #ffd700; line-height: 1.8; font-size: 15px; margin-bottom: 20px; font-weight: 500;">
+                دادا سرور شورشو در اورده میگه تا پولمو ندی منم اذیت میکنم.... شرمنده همین که اومد رو ببین تا پولشو بدیم
+            </p>
+            <div style="color: #666; font-size: 12px; font-family: monospace;">
+                CONNECTING TO NEW FREQUENCY...
+            </div>
+        </div>
+    `;
+
+    // استایل‌های کلی پوشش کل صفحه
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(5, 5, 10, 0.96)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: '999999',
+        backdropFilter: 'blur(8px)'
+    });
+
+    // انیمیشن تزریقی سریع برای جذابیت بیشتر
+    const styleTag = document.createElement('style');
+    styleTag.textContent = `
+        @keyframes glitchPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes pulseGlow { from { transform: scale(1); filter: drop-shadow(0 0 2px #ff0055); } to { transform: scale(1.1); filter: drop-shadow(0 0 15px #ff0055); } }
+    `;
+    document.head.appendChild(styleTag);
+    document.body.appendChild(overlay);
+}
+// 🔒 پروتکل ضد Inspect و ضد کلیک راست ماتریکس GHOST
+document.addEventListener('contextmenu', e => e.preventDefault()); // بستن کامل کلیک راست
+
+document.addEventListener('keydown', e => {
+    // بستن F12
+    if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+    }
+    // بستن Ctrl+Shift+I (Inspect) و Ctrl+Shift+J (Console) و Ctrl+U (View Source)
+    if (e.ctrlKey && (e.shiftKey && (e.key === 'I' || e.key === 'j' || e.key === 'J' || e.key === 'i') || e.key === 'u' || e.key === 'U')) {
+        e.preventDefault();
+        return false;
+    }
+});

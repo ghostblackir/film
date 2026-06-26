@@ -339,6 +339,8 @@ body {
 @media (min-width: 768px) {
     .hero-banner {
         height: 350px;
+        background-size: 100% 120%;
+        background-position: 50% 0%; 
     }
 }
 
@@ -1018,7 +1020,7 @@ body {
     background: var(--bg-card);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.05);
-    width: 40px;
+    width: 25px;
     height: 40px;
     border-radius: 8px;
     cursor: pointer;
@@ -1194,7 +1196,7 @@ body {
 .vip-badge-tag {
     position: absolute;
     top: 10px;
-    left: 10px; /* قرارگیری در بالا سمت چپ کاور */
+    left: 10px; 
     background: linear-gradient(135deg, #ffd700 0%, #ff8c00 100%);
     color: #000000;
     font-size: 0.72rem;
@@ -2415,3 +2417,4 @@ video{
         height: 50px !important;
     }
 }
+

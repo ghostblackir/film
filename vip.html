@@ -53,6 +53,8 @@
             <a href="vip.html"><i class="bi bi-gem"></i> بخش VIP</a>
             <a href="shop.html"><i class="bi bi-bag-check"></i> خرید سرویس</a>
             <a href="live.html"><i class="bi bi-fire"></i>LIVE</a>
+            <a href="series.html"><i class="bi bi-collection-play"></i> سریال‌ها</a>
+            <a href="wheel.html" class="active"><i class="bi bi-gear-fill"></i> گردونه شانس</a>
         </nav>
 
         <div class="sidebar-footer" id="userProfileSection">
@@ -144,12 +146,16 @@
                 const fetchedMovies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 const now = new Date().getTime();
 
-                // 🌟 اصلاح اصلی اینجاست: فیلم‌های واقعی VIP + فیلم‌های فری که زمانشون تموم شده
+                // 🌟 اصلاح نهایی و امن: ادغام فیلتر محرمانه آفتاب‌پرست با منطق VIP شما
                 allVipMovies = fetchedMovies.filter(movie => {
-                    // اگر از اول VIP بوده که حله
+                    // ۱. بررسی فرکانس مخفی سایت (اگر با حالت فعال شبکه یکی نباشد، فیلم اصلاً وارد پیج نمی‌شود)
+                    // فیلم‌های قدیمی بدون mMode به طور خودکار پیش‌فرض ۱ (سیاه) در نظر گرفته می‌شوند
+                    const movieMode = movie.mMode || 1;
+                    if (movieMode !== activeSystemMode) return false;
+
+                    // ۲. کدهای اصلی و بدون تغییر خودت برای دسترسی VIP:
                     if (movie.access === 'vip') return true;
 
-                    // اگر فری بوده ولی تایمرش به پایان رسیده، اینم باید بیاد تو پیج VIP
                     if (movie.access === 'free' && movie.freeUntil) {
                         const targetTime = new Date(movie.freeUntil).getTime();
                         if (targetTime <= now) {
@@ -302,6 +308,30 @@
             });
             btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
         }
+
+        // =========================================================================
+        // شنود زنده فرکانس آفتاب‌پرست (بچسبانید به آخر اسکریپت vip.html)
+        // =========================================================================
+        let activeSystemMode = 1; // تعریف متغیر به صورت عمومی برای استفاده در فیلتر بالا
+
+        (async function () {
+            try {
+                const { doc, onSnapshot } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+
+                // به محض تغییر دکمه در ادمین، این مقدار زنده آپدیت می‌شود
+                onSnapshot(doc(db, 'settings', 'networkConfig'), (configSnapshot) => {
+                    if (configSnapshot.exists()) {
+                        activeSystemMode = configSnapshot.data().currentMode || 1;
+
+                        // شلیک به تابع اصلی فایربیس شما برای رندر مجدد و اعمال تغییرات بدون رفرش
+                        if (typeof renderVipGrid === 'function' && typeof allVipMovies !== 'undefined') {
+                            // یک‌بار فیلتر سراسری را با وضعیت جدید شبکه تحریک می‌کنیم
+                            window.location.hash = window.location.hash ? "" : "#sync";
+                        }
+                    }
+                });
+            } catch (e) { console.log("خطا در همگام‌سازی فرکانس VIP:", e); }
+        })();
     </script>
     <script type="module" src="js/menu.js"></script>
 </body>
